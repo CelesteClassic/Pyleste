@@ -1,9 +1,3 @@
-class Table():
-  def __init__(self, contents):
-    self._contents = contents
-  def __getattr__(self, key):
-    return self._contents[key]
-
 class PICO8():
   def __init__(self, game):
     self._btn_state = 0
@@ -23,12 +17,3 @@ class PICO8():
   @property
   def game(self):
     return self._game
-
-if __name__ == '__main__':
-  from Celeste import Celeste
-  p8 = PICO8(Celeste)
-  p = p8.game.get_player()
-  p.spd.y = -2
-  for _ in range(60):
-    p8.step()
-    print(p)
