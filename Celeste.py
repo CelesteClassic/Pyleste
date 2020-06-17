@@ -27,7 +27,6 @@ class Celeste():
   # entry point
   def _init(self):
     self.frames = 0
-    self.init_object(self.Player, 0, 0)
 
   # game update loop
   def _update(self):
@@ -250,7 +249,7 @@ class Celeste():
     self.objects.remove(obj)
 
   def kill_player(self, obj):
-    destroy_object(obj)
+    self.destroy_object(obj)
 
   # helper functions
 
