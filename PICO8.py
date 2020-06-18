@@ -4,6 +4,9 @@ class PICO8():
     self._game = game(self)
     self._game._init()
 
+  def reset(self):
+    self._game._init()
+
   def step(self):
     self._game._update()
     self._game._draw()
@@ -12,7 +15,7 @@ class PICO8():
     self._btn_state = state
 
   def btn(self, i):
-    return self._btn_state & 2 ** i == 1
+    return self._btn_state & 2 ** i != 0
 
   @property
   def game(self):
