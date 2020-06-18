@@ -79,11 +79,11 @@ class Celeste():
     return self.x + self.y * 8
 
   def restart_room(self):
-    delay_restart=15
+    self.delay_restart=15
 
   def next_room(self):
     next_lvl = self.level_index() + 1
-    load_room(next_lvl % 8, math.floor(next_level / 8))
+    self.load_room(next_lvl % 8, math.floor(next_level / 8))
 
   # load room
   def load_room(self, x, y):
@@ -340,7 +340,7 @@ class Celeste():
 
   def kill_player(self, obj):
     self.destroy_object(obj)
-    restart_room()
+    self.restart_room()
 
   # helper functions
 
