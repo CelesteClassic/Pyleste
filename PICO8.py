@@ -21,6 +21,7 @@ class PICO8():
 
   # console commands
 
+  # load game from cart
   def load_game(self, cart):
     self._cart = cart
     self._game = self._cart(self)
@@ -28,18 +29,24 @@ class PICO8():
       'map': [int(self._game.map_data[i:i + 2][::1 if i < 4096 else -1], 16) for i in range(0, len(self._game.map_data), 2)],
       'flags': [int(self._game.flag_data[i:i + 2], 16) for i in range(0, len(self._game.flag_data), 2)]
     }
-    print(len(self._memory['map']))
     self._game._init()
 
+  # reload the current cart
   def reset(self):
     self.load_game(self._cart)
 
+  # perform a game step
   def step(self):
     self._game._update()
     self._game._draw()
     self._time += 1
 
-  def set_button_state(self, state):
+  # set button state from inputs
+  def set_inputs(self, l=False, r=False, u=False, d=False, z=False, x=False):
+    self.set_btn_state(l * 1 + r * 2 + u * 4 + d * 8 + z * 16 + x * 32)
+
+  # set button state directly (0bxzdurl)
+  def set_btn_state(self, state):
     self._btn_state = state
 
   @property
