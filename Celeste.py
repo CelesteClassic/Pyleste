@@ -31,7 +31,7 @@ class Celeste():
       #8: self.key,
       #11: self.platform,
       #12: self.platform,
-      #18: self.spring,
+      18: self.spring,
       #20: self.chest,
       #22: self.balloon,
       #23: self.fall_floor,
@@ -115,7 +115,7 @@ class Celeste():
     def is_ice(self, ox, oy):
       return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 4)
 
-    def check(obj, ox, oy):
+    def check(self, obj, ox, oy):
       for other in g.objects:
         if type(other) == obj and other != self and other.collideable and \
          other.x + other.hitbox.x + other.hitbox.w > self.x + self.hitbox.x + ox and \
@@ -267,7 +267,7 @@ class Celeste():
         deccel = 0.15
 
         # set x speed
-        self.spd.x = g.appr(self.spd.x, h_input * maxrun, accel) if abs(self.spd.x) <= 1 else g.appr(self.spd.x, sign(self.spd.x) * maxrun, deccel)
+        self.spd.x = g.appr(self.spd.x, h_input * maxrun, accel) if abs(self.spd.x) <= 1 else g.appr(self.spd.x, g.sign(self.spd.x) * maxrun, deccel)
 
         # facing direction
         if self.spd.x != 0:
@@ -309,8 +309,8 @@ class Celeste():
           # effects
           freeze = 2
           # dash target speeds and accels
-          self.dash_target.x = 2 * sign(self.spd.x)
-          self.dash_target.y = (2 if self.spd.y >= 0 else 1.5) * sign(self.spd.y)
+          self.dash_target.x = 2 * g.sign(self.spd.x)
+          self.dash_target.y = (2 if self.spd.y >= 0 else 1.5) * g.sign(self.spd.y)
           self.dash_accel.x = 1.5 if self.spd.y == 0 else 1.06066017177
           self.dash_accel.y = 1.5 if self.spd.x == 0 else 1.06066017177
 
@@ -325,6 +325,37 @@ class Celeste():
 
     def __str__(self):
       return f'{p8.time} [player]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
+
+  class spring(base_obj):
+    def __init__(self, x, y, tile):
+      g.base_obj.__init__(self, x, y, tile)
+
+    def init(self):
+      self.hide_in = 0
+      self.hide_for = 0
+
+    def update(self):
+      if self.hide_for > 0:
+        self.hide_for -= 1
+        if self.hide_for <= 0:
+          self.delay = 0
+      elif self.spr == 18:
+        hit = self.check(g.player, 0, 0)
+        if hit != None and hit.spd.y >= 0:
+          self.spr = 19
+          hit.y = self.y - 4
+          hit.spd.x *= 0.2
+          hit.spd.y = -3
+          hit.djump = g.max_djump
+          self.delay = 10
+          # [not implemented]
+          # below = this.check(g.fall_floor, 0, 1)
+          # if below != None:
+          #   g.break_fall_floor(below)
+      elif self.delay > 0:
+        self.delay -= 1
+        if self.delay <= 0:
+          self.spr = 18
 
   # object handling stuff
 
@@ -488,7 +519,7 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
 '''.replace('\n', '')
 
   def __str__(self):
-    spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
+    sprites = {17: '△△', 18: 'ΞΞ', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
     p = self.get_player()
     if p != None:
       px, py = round(p.x / 8), round(p.y / 8)
@@ -500,8 +531,8 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
           map_str += '◖◗'
         elif p8.fget(tile, 0):
           map_str += '▓▓'
-        elif tile in spikes:
-          map_str += spikes[tile]
+        elif tile in sprites:
+          map_str += sprites[tile]
         else:
           map_str += '  '
       map_str += '\n'
