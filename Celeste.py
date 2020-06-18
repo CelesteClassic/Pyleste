@@ -234,7 +234,7 @@ class Celeste():
         self.spd.x = 0
 
     def __str__(self):
-      return 'x: {}, y: {}\nrem.x: {:.4f}, rem.y: {:.4f}\nspd.x: {:.4f}, spd.y: {:.4f}'.format(self.x, self.y, self.rem.x, self.rem.y, self.spd.x, self.spd.y)
+      return f'x: {self.x}, y: {self.y}\nrem.x: {self.rem.x:.4f}, rem.y: {self.rem.y:.4f}\nspd.x: {self.spd.x:.4f}, spd.y: {self.spd.y:.4f}'
 
   # object handling stuff
 
@@ -262,7 +262,7 @@ class Celeste():
     return max(a, min(b, val))
 
   def appr(self, val, target, amount):
-    return max(val - amount, target) if val > target else min(val + amount, target)
+    return max(val - amoinit_objectunt, target) if val > target else min(val + amount, target)
 
   def sign(self, x):
     return 1 if x > 0 else -1 if x < 0 else 0
