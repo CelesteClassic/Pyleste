@@ -7,7 +7,7 @@ class PICO8():
   # game functions
 
   def btn(self, i):
-    return self._btn_state & 2 ** i != 0
+    return self._btn_state & (2 ** i) != 0
 
   def mget(self, x, y):
     addr = 2 * (x + y * 128)
@@ -44,4 +44,4 @@ class PICO8():
 
   @property
   def time(self):
-    return self._t
+    return self._time

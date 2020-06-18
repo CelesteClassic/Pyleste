@@ -15,6 +15,7 @@ class Celeste():
     self.room = Table({'x': 0, 'y': 0})
     self.objects = []
     self.freeze = 0
+    self.delay_restart = 0
 
     self.max_djump = 1
 
@@ -55,6 +56,11 @@ class Celeste():
       self.freeze -= 1
       return
 
+    if self.delay_restart > 0:
+      self.delay_restart -= 1
+      if self.delay_restart == 0:
+        self.load_room(self.room.x, self.room.y)
+
     for o in self.objects:
       o.move(o.spd.x, o.spd.y)
       if callable(getattr(o, 'update', None)):
@@ -68,6 +74,16 @@ class Celeste():
     for o in self.objects:
       if callable(getattr(o, 'draw', None)):
         o.draw()
+
+  def level_index(self):
+    return self.x + self.y * 8
+
+  def restart_room(self):
+    delay_restart=15
+
+  def next_room(self):
+    next_lvl = self.level_index() + 1
+    load_room(next_lvl % 8, math.floor(next_level / 8))
 
   # load room
   def load_room(self, x, y):
@@ -184,7 +200,7 @@ class Celeste():
           g.init_object(g.player, self.x, self.y)
 
     def __str__(self):
-      return f'[player_spawn]\nx: {self.x}, y: {self.y}\nrem.x: {self.rem.x:.4f}, rem.y: {self.rem.y:.4f}\nspd.x: {self.spd.x:.4f}, spd.y: {self.spd.y:.4f}'
+      return f'{p8.time} [player_spawn]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   # player object
   class player(base_obj):
@@ -300,8 +316,7 @@ class Celeste():
 
       # exit level off the top
       if self.y < -4:
-        # [not implemented]
-        pass
+        next_room()
 
     def draw(self):
       if self.x < -1 or self.x > 121:
@@ -309,7 +324,7 @@ class Celeste():
         self.spd.x = 0
 
     def __str__(self):
-      return f'[player]\nx: {self.x}, y: {self.y}\nrem.x: {self.rem.x:.4f}, rem.y: {self.rem.y:.4f}\nspd.x: {self.spd.x:.4f}, spd.y: {self.spd.y:.4f}'
+      return f'{p8.time} [player]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   # object handling stuff
 
@@ -325,6 +340,7 @@ class Celeste():
 
   def kill_player(self, obj):
     self.destroy_object(obj)
+    restart_room()
 
   # helper functions
 
