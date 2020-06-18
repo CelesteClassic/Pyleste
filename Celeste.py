@@ -352,8 +352,8 @@ class Celeste():
   def clamp(self, val, a, b):
     return max(a, min(b, val))
 
-  def appr(self, val, target, amount):
-    return max(val - amoinit_objectunt, target) if val > target else min(val + amount, target)
+  def appr(self, val, target, amt):
+    return max(val - amt, target) if val > target else min(val + amt, target)
 
   def sign(self, x):
     return 1 if x > 0 else -1 if x < 0 else 0
@@ -372,10 +372,10 @@ class Celeste():
     for i in range(max(0, int(x / 8)), int(min(15, (x + w - 1) / 8)) + 1):
       for j in range(max(0, int(y / 8)), int(min(15, (y + h - 1) / 8)) + 1):
         tile = self.tile_at(i, j)
-        if (tile == 17 and ((y + h - 1) % 8 >= 6 or y + h == j * 8 + 8) and yspd >= 0) or \
-         (tile == 27 and y % 8 <= 2 and yspd <= 0) or \
-         (tile == 43 and x % 8 <= 2 and xspd <= 0) or \
-         (tile == 59 and ((x + w - 1) % 8 >= 6 or x + w == i * 8 + 8) and xspd >= 0):
+        if (tile == 17 and ((y + h - 1) % 8 >= 6 or y + h == j * 8 + 8) and spdy >= 0) or \
+         (tile == 27 and y % 8 <= 2 and spdy <= 0) or \
+         (tile == 43 and x % 8 <= 2 and spdx <= 0) or \
+         (tile == 59 and ((x + w - 1) % 8 >= 6 or x + w == i * 8 + 8) and spdx >= 0):
           return True
     return False
 
@@ -454,3 +454,23 @@ class Celeste():
 0000000000000000000000000000000004020000000000000000000200000000030303030303030304040402020000000303030303030303040404020202020200001313131302020302020202020002000013131313020204020202020202020000131313130004040202020202020200001313131300000002020202020202
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 '''.replace('\n', '')
+
+  def __str__(self):
+    spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
+    p = self.get_player()
+    if p != None:
+      px, py = round(p.x / 8), round(p.y / 8)
+    map_str = ''
+    for ty in range(16):
+      for tx in range(16):
+        tile = p8.mget(self.room.x * 16 + tx, self.room.y * 16 + ty)
+        if p != None and tx == px and ty == py:
+          map_str += '◖◗'
+        elif p8.fget(tile, 0):
+          map_str += '▓▓'
+        elif tile in spikes:
+          map_str += spikes[tile]
+        else:
+          map_str += '  '
+      map_str += '\n'
+    return map_str
