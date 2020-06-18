@@ -10,16 +10,13 @@ class PICO8():
     return self._btn_state & (2 ** i) != 0
 
   def mset(self, x, y, tile):
-    addr = 2 * (x + y * 128)
-    self._mem_map[addr:addr + 2] = '%0.2x' % tile
+    self._mem_map[2 * (x + y * 128)] = tile
 
   def mget(self, x, y):
-    addr = 2 * (x + y * 128)
-    return int(self._mem_map[addr:addr + 2], 16)
+    return self._mem_map[2 * (x + y * 128)]
 
   def fget(self, n, f=None):
-    addr = 2 * n
-    flags = int(self._mem_flags[addr:addr + 2], 16)
+    flags = self._mem_flags[2 * n]
     return flags if f == None else flags & 2 ** f != 0
 
   # console commands
@@ -27,8 +24,8 @@ class PICO8():
   def load_game(self, cart):
     self._cart = cart
     self._game = self._cart(self)
-    self._mem_map = self._game.map_data
-    self._mem_flags = self._game.flag_data
+    self._mem_map = [int(self._game.map_data[i:i + 2], 16)for i in range(int(len(self._game.map_data) / 2))]
+    self._mem_flags = [int(self._game.flag_data[i:i + 2], 16)for i in range(int(len(self._game.flag_data) / 2))]
     self._game._init()
 
   def reset(self):
