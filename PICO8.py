@@ -9,6 +9,10 @@ class PICO8():
   def btn(self, i):
     return self._btn_state & (2 ** i) != 0
 
+  def mset(self, x, y, tile):
+    addr = 2 * (x + y * 128)
+    self._mem_map[addr:addr + 2] = '%0.2x' % tile
+
   def mget(self, x, y):
     addr = 2 * (x + y * 128)
     return int(self._mem_map[addr:addr + 2], 16)
