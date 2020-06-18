@@ -25,9 +25,10 @@ class PICO8():
     self._cart = cart
     self._game = self._cart(self)
     self._memory = {
-      'map': [int(self._game.map_data[i:i + 2], 16) for i in range(0, len(self._game.map_data), 2)],
+      'map': [int(self._game.map_data[i:i + 2], 16) if i < 4096 else int(self._game.map_data[i:i + 2][::-1], 16) for i in range(0, len(self._game.map_data), 2)],
       'flags': [int(self._game.flag_data[i:i + 2], 16) for i in range(0, len(self._game.flag_data), 2)]
     }
+    print(len(self._memory['map']))
     self._game._init()
 
   def reset(self):
