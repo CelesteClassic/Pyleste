@@ -42,3 +42,4 @@ if __name__ == '__main__':
   for f in range(20):
     p8.step()
     print(p8.game.get_player())
+  
