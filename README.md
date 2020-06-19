@@ -17,7 +17,7 @@ Python Celeste Classic emulator.
   p8.set_inputs(u=True, r=True, x=True)
 
   # swap 100m with this level and reload it
-  room_data= '''
+  room_data = '''
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
