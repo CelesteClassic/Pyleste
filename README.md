@@ -1,5 +1,5 @@
 # Pyleste
-Python Celeste Classic physics simulator.
+Python Celeste Classic emulator.
 
 # Usage
 ```python
