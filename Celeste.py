@@ -307,7 +307,7 @@ class Celeste():
           self.spd.x = h_input * (d_full if v_input == 0 else d_half) if h_input != 0 else (0 if v_input != 0 else -1 if self.flip.x else 1)
           self.spd.y = v_input * (d_full if h_input == 0 else d_half) if v_input != 0 else 0
           # effects
-          freeze = 2
+          g.freeze = 2
           # dash target speeds and accels
           self.dash_target.x = 2 * g.sign(self.spd.x)
           self.dash_target.y = (2 if self.spd.y >= 0 else 1.5) * g.sign(self.spd.y)
