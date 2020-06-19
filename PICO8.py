@@ -1,6 +1,5 @@
 class PICO8():
   def __init__(self, cart):
-    self._time = 0
     self._btn_state = 0
     self.load_game(cart)
 
@@ -39,7 +38,6 @@ class PICO8():
   def step(self):
     self._game._update()
     self._game._draw()
-    self._time += 1
 
   # set button state from inputs
   def set_inputs(self, l=False, r=False, u=False, d=False, z=False, x=False):
@@ -52,7 +50,3 @@ class PICO8():
   @property
   def game(self):
     return self._game
-
-  @property
-  def time(self):
-    return self._time

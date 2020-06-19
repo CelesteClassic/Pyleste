@@ -200,7 +200,7 @@ class Celeste():
           g.init_object(g.player, self.x, self.y)
 
     def __str__(self):
-      return f'{p8.time} [player_spawn]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
+      return f'[player_spawn]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   # player object
   class player(base_obj):
@@ -316,7 +316,7 @@ class Celeste():
 
       # exit level off the top
       if self.y < -4:
-        next_room()
+        g.next_room()
 
     def draw(self):
       if self.x < -1 or self.x > 121:
@@ -324,7 +324,7 @@ class Celeste():
         self.spd.x = 0
 
     def __str__(self):
-      return f'{p8.time} [player]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
+      return f'[player]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   class spring(base_obj):
     def __init__(self, x, y, tile):
