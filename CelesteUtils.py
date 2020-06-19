@@ -1,5 +1,3 @@
-from Celeste import Table
-
 # exiting the level restarts the level
 def enable_loop_mode(p8):
   g = p8.game

@@ -1,10 +1,16 @@
 import math
 
-class Table():
-  def __init__(self, contents):
-    self._contents = contents
-  def __getattr__(self, key):
-    return self._contents[key]
+class Vector():
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+
+class Rect():
+  def __init__(self, x, y, w, h):
+    self.x = x
+    self.y = y
+    self.w = w
+    self.h = h
 
 class Celeste():
   def __init__(self, pico8):
@@ -12,7 +18,7 @@ class Celeste():
     p8, g = pico8, self
 
     # game globals
-    self.room = Table({'x': 0, 'y': 0})
+    self.room = Vector(0, 0)
     self.objects = []
     self.freeze = 0
     self.delay_restart = 0
@@ -44,11 +50,13 @@ class Celeste():
     }
 
   # entry point
+
   def _init(self):
     self.frames = 0
     self.load_room(0, 0)
 
-  # game update loop
+  # main update loop
+
   def _update(self):
     self.frames = (self.frames + 1) % 30
 
@@ -66,7 +74,8 @@ class Celeste():
       if callable(getattr(o, 'update', None)):
         o.update()
 
-  # game draw loop
+  # main draw loop (not actually for drawing)
+
   def _draw(self):
     if self.freeze > 0:
       return
@@ -74,6 +83,8 @@ class Celeste():
     for o in self.objects:
       if callable(getattr(o, 'draw', None)):
         o.draw()
+
+  # room stuff
 
   def level_index(self):
     return self.room.x + self.room.y * 8
@@ -85,7 +96,6 @@ class Celeste():
     next_lvl = self.level_index() + 1
     self.load_room(next_lvl % 8, math.floor(next_lvl / 8))
 
-  # load room
   def load_room(self, x, y):
     self.objects = []
     self.room.x = x
@@ -97,17 +107,18 @@ class Celeste():
           self.init_object(self.tiles[tile], tx * 8, ty * 8, tile)
 
   # object base class
+
   class base_obj():
-    def __init__(self, x, y, tile):
+    def __init__(self, x, y, tile=None):
       self.collideable = True,
       self.solids = False
       self.spr = tile
-      self.flip = Table({'x': False, 'y': False})
+      self.flip = Vector(False, False)
       self.x = x
       self.y = y
-      self.hitbox = Table({'x': 0, 'y': 0, 'w': 8, 'h': 8})
-      self.spd = Table({'x': 0.0, 'y': 0.0})
-      self.rem = Table({'x': 0.0, 'y': 0.0})
+      self.hitbox = Rect(0, 0, 8, 8)
+      self.spd = Vector(0.0, 0.0)
+      self.rem = Vector(0.0, 0.0)
 
     def is_solid(self, ox, oy):
       return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 0)
@@ -161,8 +172,13 @@ class Celeste():
       else:
         self.y += amt
 
+    def __str__(self):
+      return f'[{self.__class__.__name__}]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
+
+  # objects
+
   class player_spawn(base_obj):
-    def __init__(self, x, y, tile):
+    def __init__(self, x, y, tile=None):
       g.base_obj.__init__(self, x, y, tile)
 
     def init(self):
@@ -189,7 +205,7 @@ class Celeste():
           elif self.y > self.target:
             # clamp at target y
             self.y = self.target
-            self.spd = Table({'x': 0, 'y': 0})
+            self.spd = Vector(0.0, 0.0)
             self.state = 2
             self.delay = 5
       # landing and spawning player object
@@ -199,12 +215,8 @@ class Celeste():
           g.destroy_object(self)
           g.init_object(g.player, self.x, self.y)
 
-    def __str__(self):
-      return f'[player_spawn]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
-
-  # player object
   class player(base_obj):
-    def __init__(self, x, y, tile):
+    def __init__(self, x, y, tile=None):
       g.base_obj.__init__(self, x, y, tile)
 
     def init(self):
@@ -215,9 +227,9 @@ class Celeste():
       self.djump = 1
       self.dash_time = 0
       self.dash_effect_time = 0
-      self.dash_target = Table({'x': 0.0, 'y': 0.0})
-      self.dash_accel = Table({'x': 0.0, 'y': 0.0})
-      self.hitbox = Table({'x': 1, 'y': 3, 'w': 6, 'h': 5})
+      self.dash_target = Vector(0.0, 0.0)
+      self.dash_accel = Vector(0.0, 0.0)
+      self.hitbox = Rect(1, 3, 6, 5)
       self.solids = True
     
     def update(self):
@@ -322,9 +334,6 @@ class Celeste():
       if self.x < -1 or self.x > 121:
         self.x = g.clamp(self.x, -1, 121)
         self.spd.x = 0
-
-    def __str__(self):
-      return f'[player]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   class spring(base_obj):
     def __init__(self, x, y, tile):
