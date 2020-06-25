@@ -25,7 +25,7 @@ class PICO8():
     self._cart = cart
     self._game = self._cart(self)
     self._memory = {
-      'map': [int(self._game.map_data[i:i + 2][::1 if i < 4096 else -1], 16) for i in range(0, len(self._game.map_data), 2)],
+      'map': [int(self._game.map_data[i:i + 2][::1 if i < 8192 else -1], 16) for i in range(0, len(self._game.map_data), 2)],
       'flags': [int(self._game.flag_data[i:i + 2], 16) for i in range(0, len(self._game.flag_data), 2)]
     }
     self._game._init()
@@ -53,5 +53,5 @@ class PICO8():
 
   @property
   def input_display(self):
-    l, r, u, d, z, x = ['▓▓' if self.btn(i) else '░░' for i in range(6)]
+    l, r, u, d, z, x = ('▓▓' if self.btn(i) else '░░' for i in range(6))
     return f'        {u}\n{z}{x}  {l}{d}{r}'
