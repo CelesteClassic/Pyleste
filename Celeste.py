@@ -43,7 +43,7 @@ class Celeste():
       23: self.fall_floor,
       26: self.fruit,
       28: self.fly_fruit,
-      #64: self.fake_wall,
+      64: self.fake_wall,
       #86: self.message,
       #96: self.big_chest,
       #118: self.flag
@@ -73,6 +73,9 @@ class Celeste():
       o.move(o.spd.x, o.spd.y)
       if callable(getattr(o, 'update', None)):
         o.update()
+
+    # [change] remove destroyed objects after update calls
+    while self.objects.count(None) > 0: self.objects.remove(None)
 
   # main draw loop (not actually for drawing)
 
@@ -123,9 +126,11 @@ class Celeste():
       self.rem = Vector(0.0, 0.0)
 
     def is_solid(self, ox, oy):
-      if oy > 0 and self.check(g.platform, ox, 0) == None and self.check(g.platform, ox, oy):
+      if oy > 0 and not self.check(g.platform, ox, 0) and self.check(g.platform, ox, oy):
         return True
-      return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 0)
+      return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 0)\
+        or self.check(g.fall_floor, ox, oy)\
+        or self.check(g.fake_wall, ox, oy)
 
     def is_ice(self, ox, oy):
       return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 4)
@@ -337,13 +342,15 @@ class Celeste():
   class balloon(base_obj):
     def init(self):
       self.timer = 0
-      self.hitbox = Rect(-1, -1 - 2, 10 + 4, 10)
+      # [change] remove rng, expand hitbox to cover balloon oscillation cycle
+      self.hitbox = Rect(-1, -1 - 2, 10, 10 + 4)
 
     def update(self):
       if self.spr == 22:
         hit = self.check(g.player, 0, 0)
-        if hit != None and hit.djump < 1:
-          hit.djump = 1
+        if hit and hit.djump < g.max_djump:
+          print('yo')
+          hit.djump = g.max_djump
           self.spr = 0
           self.timer = 60
       elif self.timer > 0:
@@ -364,9 +371,9 @@ class Celeste():
         self.x = 128
       elif self.x > 128:
         self.x = -16
-      if self.check(g.player, 0, 0) == None:
+      if not self.check(g.player, 0, 0):
         hit = self.check(g.player, 0, -1)
-        if hit != None:
+        if hit:
           hit.move_x(self.x - self.last, 1)
       self.last = self.x
 
@@ -377,15 +384,14 @@ class Celeste():
 
     def update(self):
       hit = self.check(g.player, 0, 0)
-      if hit != None:
-        hit.djump = 1
+      if hit:
+        hit.djump = g.max_djump
         g.destroy_object(self)
       self.off += 1
       self.y = self.start + math.sin(self.off / 40) * 2.5
 
   class fly_fruit(base_obj):
     def init(self):
-      self.start = self.y
       self.fly = False
       self.step = 0.5
       self.solids = False
@@ -401,9 +407,23 @@ class Celeste():
         self.step += 0.05
         self.spd.y = math.sin(self.step) * 0.5
       hit = self.check(g.player, 0, 0)
-      if hit != None:
+      if hit:
         hit.djump = g.max_djump
         g.destroy_object(self)
+
+  class fake_wall(base_obj):
+    def update(self):
+      self.hitbox.w = 18
+      self.hitbox.h = 18
+      hit = self.check(g.player, -1, -1)
+      if hit and hit.dash_effect_time > 0:
+        hit.spd.x = -g.sign(hit.spd.x) * 1.5
+        hit.spd.y = -1.5
+        hit.dash_time = -1
+        g.init_object(g.fruit, self.x + 4, self.y + 4, 26)
+        g.destroy_object(self)
+      self.hitbox.w = 16
+      self.hitbox.h = 16
 
   class spring(base_obj):
     def init(self):
@@ -417,7 +437,7 @@ class Celeste():
           self.delay = 0
       elif self.spr == 18:
         hit = self.check(g.player, 0, 0)
-        if hit != None and hit.spd.y >= 0:
+        if hit and hit.spd.y >= 0:
           self.spr = 19
           hit.y = self.y - 4
           hit.spd.x *= 0.2
@@ -425,7 +445,7 @@ class Celeste():
           hit.djump = g.max_djump
           self.delay = 10
           below = self.check(g.fall_floor, 0, 1)
-          if below != None:
+          if below:
             g.break_fall_floor(below)
       elif self.delay > 0:
         self.delay -= 1
@@ -467,7 +487,7 @@ class Celeste():
       obj.state = 1
       obj.delay = 15
       hit = obj.check(g.spring, 0, -1)
-      if hit != None:
+      if hit:
         g.break_spring(hit)
 
   class key(base_obj):
@@ -485,8 +505,11 @@ class Celeste():
       if g.has_key:
         self.timer -= 1
         if self.timer <= 0:
-          g.init_object(g.fruit, self.x, self.y - 4)
-          destroy_object(self)
+          f = g.init_object(g.fruit, self.x, self.y - 4, 26)
+          # [change] remove rng, expand fruit hitbox to cover all outcomes
+          f.hitbox.x -= 1
+          f.hitbox.w += 3
+          g.destroy_object(self)
 
   # object handling stuff
 
@@ -498,7 +521,8 @@ class Celeste():
     return o
 
   def destroy_object(self, obj):
-    self.objects.remove(obj)
+    # [change] remove from list later so update loop doesn't skip
+    self.objects[self.objects.index(obj)] = None
 
   def kill_player(self, obj):
     self.destroy_object(obj)
@@ -651,7 +675,19 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
 
   def __str__(self):
     spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
-    objs = {g.spring: 'ΞΞ', g.fall_floor: '▒▒', g.balloon: '()', g.key: '¤¬', g.chest: '╔╗', g.fruit: '{}', g.fly_fruit: '{}', g.platform: 'oo', g.player: '◖◗', g.player_spawn: '◖◗'}
+    objs = {
+      g.spring: 'ΞΞ', 
+      g.fall_floor: '▒▒', 
+      g.balloon: '()', 
+      g.key: '¤¬', 
+      g.chest: '╔╗', 
+      g.fruit: '{}', 
+      g.fly_fruit: '{}', 
+      g.fake_wall: '▓▓',
+      g.platform: 'oo', 
+      g.player: '◖◗', 
+      g.player_spawn: '◖◗'
+    }
     # init map
     map_str = (['  '] * 16 + ['\n']) * 16
     # draw walls and spikes
@@ -679,4 +715,8 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
           if type(o) == g.fly_fruit:
             if ox - 1 >= 0: map_str[pos - 1] = ' »'
             if ox + 1 <= 15: map_str[pos + 1] = '« '
+          if type(o) == g.fake_wall:
+            if ox + 1 <= 15: map_str[pos + 1] = objs[type(o)]
+            if oy + 1 <= 15: map_str[pos + 17] = objs[type(o)]
+            if ox + 1 <= 15 and oy + 1 <= 15: map_str[pos + 18] = objs[type(o)]
     return ''.join(map_str)
