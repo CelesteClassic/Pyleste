@@ -39,7 +39,7 @@ class Celeste():
       #12: self.platform,
       18: self.spring,
       #20: self.chest,
-      #22: self.balloon,
+      22: self.balloon,
       #23: self.fall_floor,
       #26: self.fruit,
       #28: self.fly_fruit,
@@ -173,7 +173,7 @@ class Celeste():
         self.y += amt
 
     def __str__(self):
-      return f'[{self.__class__.__name__}]\nx: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
+      return f'[{self.__class__.__name__}] x: {self.x}, y: {self.y}, rem: {{{self.rem.x:.4f}, {self.rem.y:.4f}}}, spd: {{{self.spd.x:.4f}, {self.spd.y:.4f}}}'
 
   # objects
 
@@ -336,7 +336,7 @@ class Celeste():
         self.spd.x = 0
 
   class spring(base_obj):
-    def __init__(self, x, y, tile):
+    def __init__(self, x, y, tile=None):
       g.base_obj.__init__(self, x, y, tile)
 
     def init(self):
@@ -365,6 +365,26 @@ class Celeste():
         self.delay -= 1
         if self.delay <= 0:
           self.spr = 18
+
+  class balloon(base_obj):
+    def __init__(self, x, y, tile=None):
+      g.base_obj.__init__(self, x, y, tile)
+
+    def init(self):
+      self.timer = 0
+      self.hitbox = Rect(-1, -1 - 2, 10 + 4, 10)
+
+    def update(self):
+      if self.spr == 22:
+        hit = self.check(g.player, 0, 0)
+        if hit != None and hit.djump < 1:
+          hit.djump = 1
+          self.spr = 0
+          self.timer = 60
+      elif self.timer > 0:
+        self.timer -= 1
+      else:
+        self.spr = 22
 
   # object handling stuff
 
@@ -528,21 +548,23 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
 '''.replace('\n', '')
 
   def __str__(self):
-    sprites = {17: '△△', 18: 'ΞΞ', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
-    p = self.get_player()
-    if p != None:
-      px, py = round(p.x / 8), round(p.y / 8)
-    map_str = ''
-    for ty in range(16):
-      for tx in range(16):
+    spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
+    objs = {g.spring: 'ΞΞ', g.balloon: '()', g.player: '◖◗', g.player_spawn: '◖◗'}
+    # init map
+    map_str = (['  '] * 16 + ['\n']) * 16
+    for tx in range(16):
+      for ty in range(16):
+        pos = tx + 17 * ty
         tile = p8.mget(self.room.x * 16 + tx, self.room.y * 16 + ty)
-        if p != None and tx == px and ty == py:
-          map_str += '◖◗'
-        elif p8.fget(tile, 0):
-          map_str += '▓▓'
-        elif tile in sprites:
-          map_str += sprites[tile]
-        else:
-          map_str += '  '
-      map_str += '\n'
-    return map_str
+        if p8.fget(tile, 0) or p8.fget(tile, 4):
+          map_str[pos] = '▓▓'
+        elif tile in spikes:
+          map_str[pos] = spikes[tile]
+    for o in self.objects:
+      if type(o) in objs:
+        if type(o) == g.balloon and o.spr == 0: continue
+        ox, oy = round(o.x / 8), round(o.y / 8)
+        pos = ox + 17 * oy
+        if ox >= 0 and ox <= 15 and oy >= 0 and oy <= 15:
+          map_str[pos] = objs[type(o)]
+    return ''.join(map_str)
