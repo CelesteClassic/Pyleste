@@ -34,15 +34,15 @@ class Celeste():
 
     self.tiles = {
       1: self.player_spawn,
-      #8: self.key,
-      #11: self.platform,
-      #12: self.platform,
+      8: self.key,
+      11: self.platform,
+      12: self.platform,
       18: self.spring,
-      #20: self.chest,
+      20: self.chest,
       22: self.balloon,
-      #23: self.fall_floor,
-      #26: self.fruit,
-      #28: self.fly_fruit,
+      23: self.fall_floor,
+      26: self.fruit,
+      28: self.fly_fruit,
       #64: self.fake_wall,
       #86: self.message,
       #96: self.big_chest,
@@ -97,6 +97,8 @@ class Celeste():
     self.load_room(next_lvl % 8, math.floor(next_lvl / 8))
 
   def load_room(self, x, y):
+    self.has_dashed = False
+    self.has_key = False
     self.objects = []
     self.room.x = x
     self.room.y = y
@@ -121,6 +123,8 @@ class Celeste():
       self.rem = Vector(0.0, 0.0)
 
     def is_solid(self, ox, oy):
+      if oy > 0 and self.check(g.platform, ox, 0) == None and self.check(g.platform, ox, oy):
+        return True
       return g.tile_flag_at(self.x + self.hitbox.x + ox, self.y + self.hitbox.y + oy, self.hitbox.w, self.hitbox.h, 0)
 
     def is_ice(self, ox, oy):
@@ -178,9 +182,6 @@ class Celeste():
   # objects
 
   class player_spawn(base_obj):
-    def __init__(self, x, y, tile=None):
-      g.base_obj.__init__(self, x, y, tile)
-
     def init(self):
       self.target = self.y
       self.y = 128
@@ -216,9 +217,6 @@ class Celeste():
           g.init_object(g.player, self.x, self.y)
 
   class player(base_obj):
-    def __init__(self, x, y, tile=None):
-      g.base_obj.__init__(self, x, y, tile)
-
     def init(self):
       self.p_jump = False
       self.p_dash = False
@@ -231,7 +229,7 @@ class Celeste():
       self.dash_accel = Vector(0.0, 0.0)
       self.hitbox = Rect(1, 3, 6, 5)
       self.solids = True
-    
+
     def update(self):
       # horizontal input
       h_input = 1 if p8.btn(g.k_right) else -1 if p8.btn(g.k_left) else 0
@@ -312,6 +310,7 @@ class Celeste():
         if self.djump > 0 and dash:
           self.djump -= 1
           self.dash_time = 4
+          g.has_dashed = True
           self.dash_effect_time = 10
           # vertical input
           v_input = -1 if p8.btn(g.k_up) else 1 if p8.btn(g.k_down) else 0
@@ -335,10 +334,78 @@ class Celeste():
         self.x = g.clamp(self.x, -1, 121)
         self.spd.x = 0
 
-  class spring(base_obj):
-    def __init__(self, x, y, tile=None):
-      g.base_obj.__init__(self, x, y, tile)
+  class balloon(base_obj):
+    def init(self):
+      self.timer = 0
+      self.hitbox = Rect(-1, -1 - 2, 10 + 4, 10)
 
+    def update(self):
+      if self.spr == 22:
+        hit = self.check(g.player, 0, 0)
+        if hit != None and hit.djump < 1:
+          hit.djump = 1
+          self.spr = 0
+          self.timer = 60
+      elif self.timer > 0:
+        self.timer -= 1
+      else:
+        self.spr = 22
+
+  class platform(base_obj):
+    def init(self):
+      self.x -= 4
+      self.hitbox.w = 16
+      self.last = self.x
+      self.dir = -1 if self.spr == 11 else 1
+
+    def update(self):
+      self.spd.x = self.dir * 0.65
+      if self.x < -16:
+        self.x = 128
+      elif self.x > 128:
+        self.x = -16
+      if self.check(g.player, 0, 0) == None:
+        hit = self.check(g.player, 0, -1)
+        if hit != None:
+          hit.move_x(self.x - self.last, 1)
+      self.last = self.x
+
+  class fruit(base_obj):
+    def init(self):
+      self.start = self.y
+      self.off = 0
+
+    def update(self):
+      hit = self.check(g.player, 0, 0)
+      if hit != None:
+        hit.djump = 1
+        g.destroy_object(self)
+      self.off += 1
+      self.y = self.start + math.sin(self.off / 40) * 2.5
+
+  class fly_fruit(base_obj):
+    def init(self):
+      self.start = self.y
+      self.fly = False
+      self.step = 0.5
+      self.solids = False
+
+    def update(self):
+      if self.fly:
+        self.spd.y = g.appr(self.spd.y, -3.5, 0.25)
+        if self.y < -16:
+          g.destroy_object(self)
+      else:
+        if g.has_dashed:
+          self.fly = True
+        self.step += 0.05
+        self.spd.y = math.sin(self.step) * 0.5
+      hit = self.check(g.player, 0, 0)
+      if hit != None:
+        hit.djump = g.max_djump
+        g.destroy_object(self)
+
+  class spring(base_obj):
     def init(self):
       self.hide_in = 0
       self.hide_for = 0
@@ -357,34 +424,69 @@ class Celeste():
           hit.spd.y = -3
           hit.djump = g.max_djump
           self.delay = 10
-          # [not implemented]
-          # below = this.check(g.fall_floor, 0, 1)
-          # if below != None:
-          #   g.break_fall_floor(below)
+          below = self.check(g.fall_floor, 0, 1)
+          if below != None:
+            g.break_fall_floor(below)
       elif self.delay > 0:
         self.delay -= 1
         if self.delay <= 0:
           self.spr = 18
+      if self.hide_in > 0:
+        self.hide_in -= 1
+        if self.hide_in <= 0:
+          self.hide_for = 60
+          self.spr = 0
 
-  class balloon(base_obj):
-    def __init__(self, x, y, tile=None):
-      g.base_obj.__init__(self, x, y, tile)
-
+  class fall_floor(base_obj):
     def init(self):
-      self.timer = 0
-      self.hitbox = Rect(-1, -1 - 2, 10 + 4, 10)
+      self.state = 0
 
     def update(self):
-      if self.spr == 22:
-        hit = self.check(g.player, 0, 0)
-        if hit != None and hit.djump < 1:
-          hit.djump = 1
+      if self.state == 0:
+        if self.check(g.player, 0, -1) or self.check(g.player, -1, 0) or self.check(g.player, 1, 0):
+          g.break_fall_floor(self)
+      elif self.state == 1:
+        self.delay -= 1
+        if self.delay <= 0:
+          self.state = 2
+          self.delay = 60
+          self.collideable = False
           self.spr = 0
-          self.timer = 60
-      elif self.timer > 0:
+      elif self.state == 2:
+        self.delay -= 1
+        if self.delay <= 0 and not self.check(g.player, 0, 0):
+          self.state = 0
+          self.collideable = True
+          self.spr = 23
+
+  def break_spring(self, obj):
+    obj.hide_in = 15
+
+  def break_fall_floor(self, obj):
+    if obj.state == 0:
+      obj.state = 1
+      obj.delay = 15
+      hit = obj.check(g.spring, 0, -1)
+      if hit != None:
+        g.break_spring(hit)
+
+  class key(base_obj):
+    def update(self):
+      if self.check(g.player, 0, 0):
+        g.destroy_object(self)
+        g.has_key = True
+
+  class chest(base_obj):
+    def init(self):
+      self.x -= 4
+      self.timer = 20
+
+    def update(self):
+      if g.has_key:
         self.timer -= 1
-      else:
-        self.spr = 22
+        if self.timer <= 0:
+          g.init_object(g.fruit, self.x, self.y - 4)
+          destroy_object(self)
 
   # object handling stuff
 
@@ -549,22 +651,32 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
 
   def __str__(self):
     spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
-    objs = {g.spring: 'ΞΞ', g.balloon: '()', g.player: '◖◗', g.player_spawn: '◖◗'}
+    objs = {g.spring: 'ΞΞ', g.fall_floor: '▒▒', g.balloon: '()', g.key: '¤¬', g.chest: '╔╗', g.fruit: '{}', g.fly_fruit: '{}', g.platform: 'oo', g.player: '◖◗', g.player_spawn: '◖◗'}
     # init map
     map_str = (['  '] * 16 + ['\n']) * 16
+    # draw walls and spikes
     for tx in range(16):
       for ty in range(16):
         pos = tx + 17 * ty
         tile = p8.mget(self.room.x * 16 + tx, self.room.y * 16 + ty)
-        if p8.fget(tile, 0) or p8.fget(tile, 4):
-          map_str[pos] = '▓▓'
+        if p8.fget(tile, 4):
+          map_str[pos] = '░░'
+        elif p8.fget(tile, 0):
+          map_str[pos] = '██'
         elif tile in spikes:
           map_str[pos] = spikes[tile]
+    # draw objects
     for o in self.objects:
       if type(o) in objs:
-        if type(o) == g.balloon and o.spr == 0: continue
+        if o.spr == 0: continue # suppress
         ox, oy = round(o.x / 8), round(o.y / 8)
         pos = ox + 17 * oy
         if ox >= 0 and ox <= 15 and oy >= 0 and oy <= 15:
           map_str[pos] = objs[type(o)]
+          # draw bigger objs (e.g., clouds)
+          if type(o) == g.platform and ox + 1 <= 15:
+            map_str[pos + 1] = objs[type(o)]
+          if type(o) == g.fly_fruit:
+            if ox - 1 >= 0: map_str[pos - 1] = ' »'
+            if ox + 1 <= 15: map_str[pos + 1] = '« '
     return ''.join(map_str)
