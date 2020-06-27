@@ -121,24 +121,23 @@ class Searcheline():
     self.p8.game.objects = copy.deepcopy(objs)
     self.p8.set_btn_state(a)
     self.p8.step()
+    freeze = self.p8.game.freeze
     self.p8.game.freeze = 0
     self.p8.game.delay_restart = 0
-    return self.p8.game.objects
+    return self.p8.game.objects, freeze
 
   # IDDFS
   def iddfs(self, state, depth, inputs):
     if depth == 0 and self.is_goal(state):
-      inputs = [i for s in [(x,) if x & 32 == 0 else (x, 0, 0) for x in inputs] for i in s]
       self.solutions.append(inputs)
-      print(f"  inputs: {inputs}")
-      print(f"  frames: {len(inputs) - 1}")
+      print(f"  inputs: {inputs}\n  frames: {len(inputs) - 1}")
       return True
     else:
       optimal_depth = False
       if depth > 0 and self.h_cost(state) <= depth:
         for a in self.get_actions(state):
-          new_state = self.transition(state, a)
-          done = self.iddfs(new_state, depth - 1 if a & 32 == 0 else depth - 3, inputs + [a])
+          new_state, freeze = self.transition(state, a)
+          done = self.iddfs(new_state, depth - 1 - freeze, inputs + [a] + [0] * freeze)
           if done:
             optimal_depth = True
       return optimal_depth
@@ -183,7 +182,7 @@ class Searcheline():
     dx, dy = self.compute_displacement(player)
     h_movement = abs(player.spd.x) <= 1
     can_jump = not player.p_jump and (player.grace > 0 or player.is_solid(-3 + dx, dy) or player.is_solid(3 + dx, dy))
-    can_dash = player.djump > 0 or player.is_solid(dx, 1 + dy)
+    can_dash = player.djump > 0 or player.is_solid(dx, 1 + dy) #or player.check(p8.game.balloon, dx, dy) or player.check(p8.game.fruit, dx, dy) or player.check(p8.game.fly_fruit, dx, dy)
     return h_movement, can_jump, can_dash
 
   # translate a list of inputs into english

@@ -304,7 +304,7 @@ depth 40...
   elapsed time: 5.16 [s]
 ```
 
-Note that the frame counts are one less than the search depth (i.e., the number of inputs)- this is due to the first input being a buffered input. For readability, we can use `inputs_to_english(self, inputs)` to see the shortest solution in english:
+Note that the frame counts are one less than the search depth (i.e., the number of inputs)- this is due to the first input being a *buffered* input. For readability, we can use `inputs_to_english(self, inputs)` to see the shortest solution in english:
 
 ```python
 # translate fastest solution to english and print
