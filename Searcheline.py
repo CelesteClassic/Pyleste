@@ -22,7 +22,7 @@ To define and run a search problem:
     - default: all actions
     - override this to restrict inputs (e.g., only up-dashes, no directional movement when player's y < 50, etc.)
   
-  > f_cost(self, objs)
+  > h_cost(self, objs)
     - estimated number of steps to satisfy the goal condition
     - default: infinity if is_rip, exit_heuristic otherwise
     - override to change or include additional heuristics
@@ -89,7 +89,7 @@ class Searcheline():
 
   # estimated number of steps to satisfy the goal condition
   # default: infinity if is_rip, exit_heuristic otherwise
-  def f_cost(self, objs):
+  def h_cost(self, objs):
     if self.is_rip(objs):
       return math.inf
     else:

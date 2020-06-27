@@ -107,7 +107,7 @@ To define and run a search problem:
       - Get list of available inputs for a state
       - **Default**: all actions
       - Override this to restrict inputs (e.g., only up-dashes, no directional movement when player's y < 50, etc.)
-    - `f_cost(self, objs)`
+    - `h_cost(self, objs)`
       - Estimated number of steps to satisfy the goal condition
       - **Default**: infinity if `is_rip`, `exit_heuristic` otherwise (See below)
       - Override to change or include additional heuristics
