@@ -685,8 +685,8 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
       g.fly_fruit: '{}',
       g.fake_wall: '▓▓',
       g.platform: 'oo',
-      g.player: 'CƆ',
-      g.player_spawn: 'CƆ'
+      g.player: ':D',
+      g.player_spawn: ':D'
     }
     # init map
     map_str = (['  '] * 16 + ['\n']) * 16
