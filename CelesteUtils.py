@@ -1,19 +1,22 @@
 # exiting the level restarts the level
 def enable_loop_mode(p8):
-  g = p8.game
-  g.next_room = lambda: g.load_room(g.level_index() % 8, g.level_index() // 8)
+  p8.game.next_room = lambda: p8.game.load_room(p8.game.level_index() % 8, p8.game.level_index() // 8)
 
 # load a room by level id
 def load_room(p8, level_id):
-  g = p8.game
-  g.load_room(level_id % 8, level_id // 8)
+  p8.set_btn_state(0)
+  p8.game.load_room(level_id % 8, level_id // 8)
 
 # remove all instances of an object from the current loaded room
 def suppress_object(p8, object_type):
-  g = p8.game
-  g.objects = [obj for obj in g.objects if type(obj) != object_type]
+  p8.game.objects = [obj for obj in p8.game.objects if type(obj) != object_type]
 
-# replace a room with a 128-character room string (ignores white space and line breaks)
+# skip player spawn animation
+def skip_player_spawn(p8):
+  while type(p8.game.get_player()) == p8.game.player_spawn: p8.step()
+
+# replace a room with a 128-character room string
+# every 16 characters represents a row of the room going from top to bottom- ignores spaces and line breaks
 def replace_room(p8, level_id, room_data):
   room_data = room_data.replace('\n', '').replace(' ', '')
   tiles = {
@@ -22,6 +25,9 @@ def replace_room(p8, level_id, room_data):
     'v': 27, # down spike
     '<': 59, # leftspike
     '>': 43, # right spike
+    'b': 22, # balloon
+    'c': 23, # crumble block
+    's': 18, # spring
     'p': 1,  # player spawn
     '.': 0   # empty
   }
@@ -33,11 +39,9 @@ def replace_room(p8, level_id, room_data):
 
 # forces an already spawned maddy to be in a specific state
 def place_maddy(p8, x, y, remx=0.0, remy=0.0, spdx=0.0, spdy=0.0, grace=6, djump=1):
-  g = p8.game
-  p = g.get_player()
-  if p != None:
-    g.destroy_object(p)
-  p = g.init_object(g.player, x, y)
+  p = p8.game.get_player()
+  if p != None: p8.game.objects.remove(p)
+  p = p8.game.init_object(p8.game.player, x, y)
   p.rem.x, p.rem.y = remx, remy
   p.spd.x, p.spd.y = spdx, spdy
   p.grace, p.djump = grace, djump
