@@ -676,16 +676,16 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
   def __str__(self):
     spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
     objs = {
-      g.spring: 'ΞΞ', 
-      g.fall_floor: '▒▒', 
-      g.balloon: '()', 
-      g.key: '¤¬', 
-      g.chest: '╔╗', 
-      g.fruit: '{}', 
-      g.fly_fruit: '{}', 
+      g.spring: 'ΞΞ',
+      g.fall_floor: '▒▒',
+      g.balloon: '()',
+      g.key: '¤¬',
+      g.chest: '╔╗',
+      g.fruit: '{}',
+      g.fly_fruit: '{}',
       g.fake_wall: '▓▓',
-      g.platform: 'oo', 
-      g.player: '◖◗', 
+      g.platform: 'oo',
+      g.player: '◖◗',
       g.player_spawn: '◖◗'
     }
     # init map
@@ -712,10 +712,10 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
           # draw bigger objs (e.g., clouds)
           if type(o) == g.platform and ox + 1 <= 15:
             map_str[pos + 1] = objs[type(o)]
-          if type(o) == g.fly_fruit:
+          elif type(o) == g.fly_fruit:
             if ox - 1 >= 0: map_str[pos - 1] = ' »'
             if ox + 1 <= 15: map_str[pos + 1] = '« '
-          if type(o) == g.fake_wall:
+          elif type(o) == g.fake_wall:
             if ox + 1 <= 15: map_str[pos + 1] = objs[type(o)]
             if oy + 1 <= 15: map_str[pos + 17] = objs[type(o)]
             if ox + 1 <= 15 and oy + 1 <= 15: map_str[pos + 18] = objs[type(o)]
