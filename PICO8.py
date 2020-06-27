@@ -54,4 +54,4 @@ class PICO8():
   @property
   def input_display(self):
     l, r, u, d, z, x = ('▓▓' if self.btn(i) else '░░' for i in range(6))
-    return f'        {u}\n{z}{x}  {l}{d}{r}'
+    return f"        {u}\n{z}{x}  {l}{d}{r}"
