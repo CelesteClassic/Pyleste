@@ -9,13 +9,13 @@ if __name__ == '__main__':
   # create a PICO-8 instance with Celeste loaded
   p8 = PICO8(Celeste)
 
-  # swap 100m with this level and load the room
-  room_data= '''
-  . . . . . . . . . . . . . . . .
-  . . . . . . . . . . . . . . . .
-  . . . . . . . . . . . . . . . .
-  . . . . . . . . . . . . . . . .
-  . . . . . . . . . . . . . . . .
+  # swap 100m with this level and reload it
+  room_data = '''
+  w w w w w w w w w w . . . . w w
+  w w w w w w w w w . . . . . < w
+  w w w v v v v . . . . . . . < w
+  w w > . . . . . . . . . . . . .
+  w > . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
@@ -37,12 +37,11 @@ if __name__ == '__main__':
   # view the room
   print(p8.game)
 
-  # hold right
-  p8.set_inputs(r=True)
+  # hold right + x
+  p8.set_inputs(r=True, x=True)
 
   # run for 10f while outputting player info
   print(p8.game.get_player())
   for f in range(20):
     p8.step()
-    print(p8.game.get_player())
     print(p8.game.get_player())

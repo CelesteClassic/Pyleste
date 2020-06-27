@@ -16,9 +16,10 @@ def skip_player_spawn(p8):
   while type(p8.game.get_player()) == p8.game.player_spawn: p8.step()
 
 # replace a room with a 128-character room string
-# every 16 characters represents a row of the room going from top to bottom- ignores spaces and line breaks
+# every 16 characters represents a row of the room, rows going from top to bottom
+# ignores spaces, line breaks, and letter cases
 def replace_room(p8, level_id, room_data):
-  room_data = room_data.replace('\n', '').replace(' ', '')
+  room_data = room_data.replace('\n', '').replace(' ', '').lower()
   tiles = {
     'w': 32, # terrain
     '^': 17, # up spike
