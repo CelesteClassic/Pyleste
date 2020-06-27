@@ -1,5 +1,5 @@
 from PICO8 import PICO8
-from Celeste import Celeste
+from Carts.Celeste import Celeste
 import CelesteUtils as utils
 
 import time
@@ -135,7 +135,7 @@ class Searcheline():
       return True
     else:
       optimal_depth = False
-      if depth > 0 and self.f_cost(state) <= depth:
+      if depth > 0 and self.h_cost(state) <= depth:
         for a in self.get_actions(state):
           new_state = self.transition(state, a)
           done = self.iddfs(new_state, depth - 1 if a & 32 == 0 else depth - 3, inputs + [a])

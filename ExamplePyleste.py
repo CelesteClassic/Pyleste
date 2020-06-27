@@ -1,7 +1,7 @@
 if __name__ == '__main__':
   # import PICO-8 emulator and Celeste
   from PICO8 import PICO8
-  from Celeste import Celeste
+  from Carts.Celeste import Celeste
 
   # useful Celeste utils
   import CelesteUtils as utils

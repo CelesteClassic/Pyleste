@@ -5,7 +5,7 @@ Python Celeste Classic emulator. Comes with useful utils (CelesteUtils.py) for s
 ```python
 # import PICO-8 emulator and Celeste
 from PICO8 import PICO8
-from Celeste import Celeste
+from Carts.Celeste import Celeste
 
 # useful Celeste utils
 import CelesteUtils as utils
@@ -136,7 +136,7 @@ First import some useful stuff:
 
 ```python
 from Searcheline import Searcheline
-import CelesteUtils as utils
+import Carts.CelesteUtils as utils
 import math
 ```
 
