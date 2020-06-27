@@ -98,7 +98,7 @@ class Searcheline():
   # rip conditions (situations not worth considering further)
   # default: player dies
   def is_rip(self, objs):
-    return self.find_player(objs) == None
+    return not self.find_player(objs)
 
   # underestimated number of steps to exit off the top
   # default: assumes player zips upward at a speed of 6 px/step
@@ -108,7 +108,7 @@ class Searcheline():
   # define goal conditions
   # default: exited the level
   def is_goal(self, objs):
-    return self.find_player_spawn(objs) != None
+    return self.find_player_spawn(objs)
 
   # get list of available inputs for a state
   def get_actions(self, objs):
