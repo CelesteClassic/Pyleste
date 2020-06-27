@@ -105,9 +105,9 @@ To define and run a search problem:
       - e.g., load the room and place maddy in Searcheline's game instance (`self.p8.game`), return `self.p8.game.objects`
     - `allowable_actions(self, objs, player, h_movement, can_jump, can_dash)`
       - Get list of available inputs for a state, with the following checks already computed:
-        - `h_movement`: `True` if horizontal movement/jumps have an effect (player's x speed <= 1)
-        - `can_jump`: `True` if jump input has an effect (in grace frames, next to wall, didn't jump previous frame)
-        - `can_dash`: `True` if dash input has an effect (dashes > 0)
+        - `h_movement`: `True` if horizontal movement/jumps available (player x speed <= 1)
+        - `can_jump`: `True` if jump available (in grace frames, next to wall, didn't jump previous frame)
+        - `can_dash`: `True` if dash available (dashes > 0)
       - **Default**: all actions
       - Override this to restrict inputs (e.g., only up-dashes, no directional movement when player's y < 50, etc.)
     - `h_cost(self, objs)`
