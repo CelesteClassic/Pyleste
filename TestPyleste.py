@@ -22,7 +22,7 @@ if __name__ == '__main__':
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
-  . . . . . . . . . . . . . . . .
+  . . . . . . . . . b . . . b . .
   . . . . . . . . . . . . . . . .
   . . . . . . . . . . . . . . . .
   . . . . ^ . . . . . . . . . . .
@@ -34,12 +34,17 @@ if __name__ == '__main__':
   utils.replace_room(p8, 0, room_data)
   utils.load_room(p8, 0)
 
-  # force (an already spawned) maddy to be at 0, 112
-  utils.place_maddy(p8, 0, 112)
+  # skip the player spawn
+  utils.skip_player_spawn(p8)
 
-  # run for 20f while outputting player info
+  # view the room
+  print(p8.game)
+
+  # hold right
+  p8.set_inputs(r=True)
+
+  # run for 10f while outputting player info
   print(p8.game.get_player())
   for f in range(20):
     p8.step()
     print(p8.game.get_player())
-  
