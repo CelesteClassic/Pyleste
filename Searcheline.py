@@ -42,15 +42,15 @@ To define and run a search problem:
     - default: exited the level
     - override to change goal conditions (e.g., reach certain coordinates with a dash available)
 
-3. Instantiate the class, and call instance.search(max_steps)
+3. Instantiate the class, and call instance.search(max_depth)
 
-  > use optional argument complete=True to search up to max_steps, even if a solution has already been found
+  > use optional argument complete=True to search up to max_depth, even if a solution has already been found
 '''
 
 class Searcheline():
-  def __init__(self):
+  def __init__(self, cart=None):
     self.solutions = []
-    self.p8 = PICO8(Celeste)
+    self.p8 = PICO8(Celeste if cart == None else cart)
     utils.enable_loop_mode(self.p8)
 
   # initial state (list of game objects) to search from
