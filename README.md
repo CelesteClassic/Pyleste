@@ -123,8 +123,8 @@ To define and run a search problem:
       - Define goal conditions
       - **Default**: exited the level
       - Override to change goal conditions (e.g., reach certain coordinates with a dash available)
-3. Instantiate the class, and call `instance.search(max_steps)`
-    - Use optional argument `complete=True` to search up to `max_steps`, even if a solution has already been found
+3. Instantiate the class, and call `instance.search(max_depth)`
+    - Use optional argument `complete=True` to search up to `max_depth`, even if a solution has already been found
 
 ## Example - 2100m
 
