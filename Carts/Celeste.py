@@ -674,7 +674,7 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
 '''.replace('\n', '')
 
   def __str__(self):
-    spikes = {17: '△△', 27: '▽▽', 43: '▷ ', 59: ' ◁'}
+    spikes = {17: 'ʌʌ', 27: 'vv', 43: '> ', 59: ' <'}
     objs = {
       g.spring: 'ΞΞ',
       g.fall_floor: '▒▒',
@@ -685,8 +685,8 @@ b302b211000000110092b100000000a3b1b1b1b1b1b10011111232110000b342000000a282125284
       g.fly_fruit: '{}',
       g.fake_wall: '▓▓',
       g.platform: 'oo',
-      g.player: '◖◗',
-      g.player_spawn: '◖◗'
+      g.player: ':D',
+      g.player_spawn: ':D'
     }
     # init map
     map_str = (['  '] * 16 + ['\n']) * 16
