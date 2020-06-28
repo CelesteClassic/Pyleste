@@ -8,9 +8,9 @@ class Search100(Searcheline):
     utils.suppress_object(self.p8, self.p8.game.fake_wall) # don't consider berry block
     utils.skip_player_spawn(self.p8) # skip to after player has spawned
     # execute this list of initial inputs
-    #for a in [18, 2, 2, 2, 2, 2, 2, 2, 2, 2, 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]:
-    #  self.p8.set_btn_state(a)
-    #  self.p8.step()
+    for a in [18, 2, 2, 2, 2, 2, 2, 2, 2, 2, 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]:
+      self.p8.set_btn_state(a)
+      self.p8.step()
     # alternatively, using output from a TAS tool:
     # utils.place_maddy(self.p8, 55, 79, 0.2, 0.185, 1.4, 0.63, 0, 0)
     return self.p8.game.objects

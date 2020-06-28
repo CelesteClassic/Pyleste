@@ -366,8 +366,8 @@ As long as these inputs are in the direction of the goal, this can reduce the se
     utils.load_room(self.p8, 0) # load 100m
     utils.suppress_object(self.p8, self.p8.game.fake_wall) # don't consider berry block
     utils.skip_player_spawn(self.p8) # skip to after player has spawned
-    # directly place player in a state that's 21 frames in
-    utils.place_maddy(self.p8, x=55, y=79, remx=0.2, remy=0.185, spdx=1.4, spdy=0.63, grace=0, djump=0)
+    # place player at position {55, 79} with subpixels {0.2, 0.185} and speed {1.4, 0.63}, with 0 grace frames and dashes
+    utils.place_maddy(self.p8, 55, 79, 0.2, 0.185, 1.4, 0.63, 0, 0)
     return self.p8.game.objects
 ```
 
