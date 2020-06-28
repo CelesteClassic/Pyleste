@@ -521,6 +521,6 @@ depth 46...
   elapsed time: 643.70 [s]
   ```
 
-It manages to find several 45 frame solutions, which are 66 frame solutions when acknowledging that we searched from the 21st frame onward. This search took over 10 minutes, and given a search problem's exponential growth, it likely wouldn't have been feasible to search up to depth 67 from the start, even with the heavy input restrictions. This emphasizes the care needed in setting up a feasible search problem, and how it might be better to run several, smaller searches from promising start starts! For confirmation that we set things up right, we can combine the first solution found with the initial inputs, and play it back with a TAS tool:
+It manages to find several 45 frame solutions, which are 66 frame solutions when acknowledging that we searched from the 21st frame onward. This search took over 10 minutes, and given a search problem's exponential growth, it likely wouldn't have been feasible to search up to depth 67 from the start, even with the heavy input restrictions. This emphasizes the care needed in setting up a feasible search problem, and how it might be better to instead run several, smaller searches from promising starts! For confirmation that we set things up right, we can combine the first solution found with the initial inputs, and play it back with a TAS tool:
 
 <img src="https://i.imgur.com/eT4pHtK.gif">
