@@ -167,7 +167,7 @@ In this class, override `init_state(self)`. Because we're only considering the p
     return self.p8.game.objects
 ```
 
-Again, assuming the player will dash toward the spring, we only need to consider the option of holding right, jumping while holding right, as well as dashing while holding up and right. To restrict the search to these inputs, we override `allowable_actions(self, objs, player, h_movement, can_jump, can_dash)`, where given a situation (specified by the list of objects), it should build and return a list of inputs to consider. We can make use of the `can_jump` and `can_dash` checks to only consider inputs when they're applicable:
+Again, assuming the player will dash toward the spring, we only need to consider the options of holding right, jumping while holding right, as well as dashing while holding up and right. To restrict the search to these inputs, we override `allowable_actions(self, objs, player, h_movement, can_jump, can_dash)`, where given a situation (specified by the list of objects), it should build and return a list of inputs to consider. We can make use of the `can_jump` and `can_dash` checks to only consider inputs when they're applicable:
 
 ```python
   # get list of available inputs for a state - only consider {r, r + z, u + r + x}
@@ -372,7 +372,7 @@ As long as these inputs are in the direction of the goal, this can reduce the se
     return self.p8.game.objects
 ```
 
-Based on prior knowledge about how players generally climb the right side of the level, we can restrict the inputs to only consider holding right, jumping right, dashing right, dashing up, and dashing up-right:
+Based on prior knowledge about how human players generally climb the right side of the level, we can restrict the inputs to only consider holding right, jumping right, dashing right, dashing up, and dashing up-right:
 
 ```python
   # get list of available inputs for a state - only consider {r, r + z, u + r + x}
@@ -521,6 +521,6 @@ depth 46...
   elapsed time: 643.70 [s]
   ```
 
-It manages to find several 45 frame solutions, which are 66 frame solutions when acknowledging that we searched from the 21st frame onward. This search took over 10 minutes, and given a search problem's exponential growth, it likely wouldn't have been feasible to search up to depth 67 from the start, even with the heavy input restrictions. For confirmation that we set things up right, we can combine the first solution found with the initial inputs, and play it back with a TAS tool:
+It manages to find several 45 frame solutions, which are 66 frame solutions when acknowledging that we searched from the 21st frame onward. This search took over 10 minutes, and given a search problem's exponential growth, it likely wouldn't have been feasible to search up to depth 67 from the start, even with the heavy input restrictions. This emphasizes the care needed in setting up a feasible search problem, and how it might be better to run several, smaller searches from promising start starts! For confirmation that we set things up right, we can combine the first solution found with the initial inputs, and play it back with a TAS tool:
 
 <img src="https://i.imgur.com/eT4pHtK.gif">
