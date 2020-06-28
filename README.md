@@ -1,3 +1,10 @@
+# Contents
+
+* [Pyleste](#pyleste)
+* [Searcheline](#searcheline)
+  * [Example - 2100m](#example---2100m)
+  * [Example - 100m](#example---100m)
+
 # Pyleste
 Python Celeste Classic emulator. Comes with useful utils (CelesteUtils.py) for setting up and simulating specific situations in both existing and custom-specified levels.
 
@@ -321,3 +328,198 @@ inputs: right, right, right, right, right, right, jump right, right, right, righ
 Of note, despite the assumption of dashing toward and bouncing off of the spring, the search managed to find solutions which don't use it! Recreating the depth 39 (38 frame) solution with a [TAS tool](https://github.com/CelesteClassic/UniversalClassicTas/), we see that it found a frame perfect [corner jump](https://celesteclassic.github.io/glossary/#cornerjump) to get around the spring:
 
 <img src="https://i.imgur.com/ZY8Gktp.gif">
+
+# Example - 100m
+
+Here we'll set up a search problem to solve 100m, a level that's twice as long as 2100m. From its length, we'll need to rely on additional assumptions to make it manageable. Again, we start by importing some useful stuff and creating a class which inherits from Searcheline:
+
+```python
+from Searcheline import Searcheline
+import CelesteUtils as utils
+
+class Search100(Searcheline):
+```
+
+We can play out some of the level ourselves with inputs that we suspect the optimal solution would start with, and then search from that point onward. Specifically, we can hand-specify and execute some initial inputs when specifying the initial state:
+
+```python
+  # initial state to search from
+  def init_state(self):
+    utils.load_room(self.p8, 0) # load 100m
+    utils.suppress_object(self.p8, self.p8.game.fake_wall) # don't consider berry block
+    utils.skip_player_spawn(self.p8) # skip to after player has spawned
+    # execute this list of initial inputs
+    for a in [18, 2, 2, 2, 2, 2, 2, 2, 2, 2, 34, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]:
+      self.p8.set_btn_state(a)
+      self.p8.step()
+    return self.p8.game.objects
+```
+
+This lets the search start from the 21st frame onward, specifically from this position:
+
+<img src="https://i.imgur.com/daxfieO.gif">
+
+As long as these inputs are in the direction of the goal, this can reduce the search depth by up to 21! Alternatively, with access to a [TAS tool](https://github.com/CelesteClassic/UniversalClassicTas/), one can play out the above inputs in the tool and output the player's resulting coordinates, subpixels, and speed. With this information, along with the player's grace frames and number of dashes, the player can be placed directly:
+
+```python
+  def init_state(self):
+    utils.load_room(self.p8, 0) # load 100m
+    utils.suppress_object(self.p8, self.p8.game.fake_wall) # don't consider berry block
+    utils.skip_player_spawn(self.p8) # skip to after player has spawned
+    # directly place player in a state that's 21 frames in
+    utils.place_maddy(self.p8, x=55, y=79, remx=0.2, remy=0.185, spdx=1.4, spdy=0.63, grace=0, djump=0)
+    return self.p8.game.objects
+```
+
+Based on prior knowledge about how players generally climb the right side of the level, we can restrict the inputs to only consider holding right, jumping right, dashing right, dashing up, and dashing up-right:
+
+```python
+  # get list of available inputs for a state - only consider {r, r + z, u + r + x}
+  def allowable_actions(self, objs, player, h_movement, can_jump, can_dash):
+    actions = [0b000010] # r
+    if can_jump:
+      actions.extend([0b010010]) # r + z
+    if can_dash:
+      actions.extend([0b100010, 0b100100, 0b100110]) # r + x, u + x, u + r + x
+    return actions
+```
+
+We can now run our search. Here we'll specify a maximum depth of 50, but from omitting the optional `complete` argument, the search will stop at the depth of the first solution found:
+
+```python
+  # search up to depth 50, but stop at the depth of the first solution found
+  s = Search100()
+  solutions = s.search(50)
+```
+
+```
+searching...
+depth 1...
+  elapsed time: 0.00 [s]
+depth 2...
+  elapsed time: 0.00 [s]
+depth 3...
+  elapsed time: 0.00 [s]
+depth 4...
+  elapsed time: 0.00 [s]
+depth 5...
+  elapsed time: 0.00 [s]
+depth 6...
+  elapsed time: 0.00 [s]
+depth 7...
+  elapsed time: 0.00 [s]
+depth 8...
+  elapsed time: 0.00 [s]
+depth 9...
+  elapsed time: 0.00 [s]
+depth 10...
+  elapsed time: 0.00 [s]
+depth 11...
+  elapsed time: 0.00 [s]
+depth 12...
+  elapsed time: 0.00 [s]
+depth 13...
+  elapsed time: 0.00 [s]
+depth 14...
+  elapsed time: 0.00 [s]
+depth 15...
+  elapsed time: 0.00 [s]
+depth 16...
+  elapsed time: 0.01 [s]
+depth 17...
+  elapsed time: 0.02 [s]
+depth 18...
+  elapsed time: 0.03 [s]
+depth 19...
+  elapsed time: 0.06 [s]
+depth 20...
+  elapsed time: 0.10 [s]
+depth 21...
+  elapsed time: 0.18 [s]
+depth 22...
+  elapsed time: 0.29 [s]
+depth 23...
+  elapsed time: 0.45 [s]
+depth 24...
+  elapsed time: 0.68 [s]
+depth 25...
+  elapsed time: 1.00 [s]
+depth 26...
+  elapsed time: 1.41 [s]
+depth 27...
+  elapsed time: 1.93 [s]
+depth 28...
+  elapsed time: 2.67 [s]
+depth 29...
+  elapsed time: 3.93 [s]
+depth 30...
+  elapsed time: 5.27 [s]
+depth 31...
+  elapsed time: 7.39 [s]
+depth 32...
+  elapsed time: 9.83 [s]
+depth 33...
+  elapsed time: 12.58 [s]
+depth 34...
+  elapsed time: 16.39 [s]
+depth 35...
+  elapsed time: 21.76 [s]
+depth 36...
+  elapsed time: 28.63 [s]
+depth 37...
+  elapsed time: 37.55 [s]
+depth 38...
+  elapsed time: 50.52 [s]
+depth 39...
+  elapsed time: 68.80 [s]
+depth 40...
+  elapsed time: 91.71 [s]
+depth 41...
+  elapsed time: 123.59 [s]
+depth 42...
+  elapsed time: 166.50 [s]
+depth 43...
+  elapsed time: 235.92 [s]
+depth 44...
+  elapsed time: 331.96 [s]
+depth 45...
+  elapsed time: 461.02 [s]
+depth 46...
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 18, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 18, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 2, 18, 2, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 2, 18, 2, 2, 18]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 2, 18, 2, 18, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 18]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 18, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 2, 2, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 2, 2, 2, 18]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 2, 2, 18, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 2, 18, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 18, 2, 2, 2]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 18, 2, 2, 18]
+  frames: 45
+  inputs: [2, 34, 0, 0, 0, 0, 0, 0, 2, 18, 2, 2, 2, 2, 2, 18, 2, 2, 2, 2, 2, 36, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 38, 0, 0, 0, 0, 0, 0, 18, 2, 18, 2, 18, 2]
+  frames: 45
+  elapsed time: 643.70 [s]
+  ```
+
+It manages to find several 45 frame solutions, which are 66 frame solutions when acknowledging that we searched from the 21st frame onward. This search took over 10 minutes, and given a search problem's exponential growth, it likely wouldn't have been feasible to search up to depth 67 from the start, even with the heavy input restrictions. For confirmation that we set things up right, we can combine the first solution found with the initial inputs, and play it back with a TAS tool:
+
+<img src="https://i.imgur.com/eT4pHtK.gif">
