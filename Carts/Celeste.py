@@ -349,7 +349,6 @@ class Celeste():
       if self.spr == 22:
         hit = self.check(g.player, 0, 0)
         if hit and hit.djump < g.max_djump:
-          print('yo')
           hit.djump = g.max_djump
           self.spr = 0
           self.timer = 60
