@@ -1,15 +1,23 @@
 # exiting the level restarts the level
-def enable_loop_mode(p8):
-  p8.game.next_room = lambda: p8.game.load_room(p8.game.level_index() % 8, p8.game.level_index() // 8)
+def enable_loop_mode(p8, loading_jank=False):
+  p8.game.next_room = lambda: p8.game.load_room(p8.game.level_index() % 8, p8.game.level_index() // 8, loading_jank)
 
 # set max number of dashes
 def set_max_djump(p8, max_djump):
   p8.game.max_djump = max_djump
 
 # load a room by level id
-def load_room(p8, level_id):
+# loading jank simulates extra updates performed by vanilla's foreach
+def load_room(p8, level_id, loading_jank=False):
   p8.set_btn_state(0)
   p8.game.load_room(level_id % 8, level_id // 8)
+  if level_id > 0 and loading_jank:
+    object_counts = [2, 1, 4, 14, 3, 2, 12, 9, 6, 5, 7, 3, 6, 5, 11, 8, 4, 7, 3, 6, 8, 2, 2, 1, 8, 3, 3, 7, 6, 7, 2]
+    for o in p8.game.objects[object_counts[level_id - 1] - 1:object_counts[level_id]]:
+      o.move(o.spd.x, o.spd.y)
+      if callable(getattr(o, 'update', None)):
+        o.update()
+      print(o)
 
 # remove all instances of an object from the current loaded room
 def suppress_object(p8, object_type):
