@@ -22,6 +22,7 @@ class Celeste():
     self.objects = []
     self.freeze = 0
     self.delay_restart = 0
+    self.next_rm = False # [change] decouple next room from object loop
 
     self.max_djump = 1
 
@@ -74,6 +75,19 @@ class Celeste():
       if callable(getattr(o, 'update', None)):
         o.update()
 
+    # [change] decouple next room from object loop
+    if self.next_rm:
+      self.next_rm = False
+      lvl_id = self.level_index()
+      self.load_room(lvl_id % 8, math.floor(lvl_id / 8))
+      # simulate loading jank
+      if lvl_id > 0:
+        object_counts = [2, 1, 4, 14, 3, 2, 12, 9, 6, 5, 7, 3, 6, 5, 11, 8, 4, 7, 3, 6, 8, 2, 2, 1, 8, 3, 3, 7, 6, 7, 2]
+        for o in self.objects[object_counts[lvl_id - 1] - 1:object_counts[lvl_id]]:
+          o.move(o.spd.x, o.spd.y)
+          if callable(getattr(o, 'update', None)):
+            o.update()
+    
     # [change] remove destroyed objects after update calls
     while self.objects.count(None) > 0: self.objects.remove(None)
 
@@ -95,9 +109,10 @@ class Celeste():
   def restart_room(self):
     self.delay_restart=15
 
-  def next_room(self):
-    next_lvl = self.level_index() + 1
-    self.load_room(next_lvl % 8, math.floor(next_lvl / 8))
+  def next_room(self, loop=False):
+    # [change] decouple next room from object loop
+    self.room = Vector((self.level_index() + 1) % 8, math.floor((self.level_index() + 1) / 8))
+    self.next_rm = True
 
   def load_room(self, x, y):
     self.has_dashed = False
