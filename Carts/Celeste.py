@@ -79,11 +79,11 @@ class Celeste():
     if self.next_rm:
       self.next_rm = False
       lvl_id = self.level_index()
+      n_objs = len(self.objects)
       self.load_room(lvl_id % 8, math.floor(lvl_id / 8))
       # simulate loading jank
       if lvl_id > 0:
-        object_counts = [2, 1, 4, 14, 3, 2, 12, 9, 6, 5, 7, 3, 6, 5, 11, 8, 4, 7, 3, 6, 8, 2, 2, 1, 8, 3, 3, 7, 6, 7, 2]
-        for o in self.objects[object_counts[lvl_id - 1] - 1:object_counts[lvl_id]]:
+        for o in self.objects[n_objs - 1:]:
           o.move(o.spd.x, o.spd.y)
           if callable(getattr(o, 'update', None)):
             o.update()
