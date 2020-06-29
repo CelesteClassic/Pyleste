@@ -11,7 +11,7 @@ class Search2100(Searcheline):
     return self.p8.game.objects
 
   # get list of available inputs for a state - only consider {r, r + z, u + r + x}
-  def allowable_actions(self, objs, player, can_jump, can_dash):
+  def allowable_actions(self, objs, player, h_movement, can_jump, can_dash):
     actions = [0b000010] # r
     if can_jump:
       actions.extend([0b010010]) # r + z
