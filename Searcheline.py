@@ -53,6 +53,7 @@ class Searcheline():
     self.p8 = PICO8(Celeste if cart == None else cart)
     utils.enable_loop_mode(self.p8)
 
+
   # initial state (list of game objects) to search from
   # must override this
   def init_state(self):
@@ -62,7 +63,7 @@ class Searcheline():
 
   # define list of available inputs for a state
   # default: all actions
-  def allowable_actions(self, objs, player, h_movement, can_jump, can_dash):
+  def allowable_actions(self, objs, player, can_jump, can_dash):
     ''' button states
       0b000000 -  0 - no input
       0b000001 -  1 - l
@@ -80,9 +81,9 @@ class Searcheline():
       0b101001 - 41 - d + l + x
       0b101010 - 42 - d + r + x
     '''
-    actions = [0b000000] if not h_movement else [0b000000, 0b000001, 0b000010]
+    actions = [0b000000, 0b000001, 0b000010]
     if can_jump:
-      actions.extend([0b010000] if not h_movement else [0b010000, 0b010001, 0b010010])
+      actions.extend([0b010000, 0b010001, 0b010010])
     if can_dash:
       actions.extend([0b100000, 0b100001, 0b100010, 0b100100, 0b100101, 0b100110, 0b101000, 0b101001, 0b101010])
     return actions
@@ -114,7 +115,9 @@ class Searcheline():
   def get_actions(self, objs):
     p = self.find_player(objs)
     if p.dash_time != 0: return [0b000000]
-    return self.allowable_actions(objs, p, *self.action_restrictions(objs, p))
+    h_movement, can_jump, can_dash = self.action_restrictions(objs, p)
+    actions = self.allowable_actions(objs, p, can_jump, can_dash)
+    return actions if h_movement else list(set([a & 60 if a < 32 else a for a in actions]))
 
   # apply inputs to a state, disable freeze and respawn globals as one game instance is shared
   def transition(self, objs, a):
