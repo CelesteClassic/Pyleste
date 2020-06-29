@@ -114,7 +114,7 @@ class Searcheline():
   def get_actions(self, objs):
     p = self.find_player(objs)
     if p.dash_time != 0: return [0b000000]
-    return self.allowable_actions(objs, p, *self.action_restrictions(p))
+    return self.allowable_actions(objs, p, *self.action_restrictions(objs, p))
 
   # apply inputs to a state, disable freeze and respawn globals as one game instance is shared
   def transition(self, objs, a):
@@ -174,15 +174,15 @@ class Searcheline():
     dx, dy = round(player.rem.x + player.spd.x), round(player.rem.y + player.spd.y)
     dx, dy = dx + sign(dx), dy + sign(dy)
     while player.is_solid(dx, 0): dx -= sign(player.spd.x)
-    while player.is_solid(0, dy): dy -= sign(player.spd.y)
+    while player.is_solid(dx, dy): dy -= sign(player.spd.y)
     return dx, dy
 
   # compute basic action restrictions (can move horizontally, can jump, can dash)
-  def action_restrictions(self, player):
+  def action_restrictions(self, objs, player):
     dx, dy = self.compute_displacement(player)
     h_movement = abs(player.spd.x) <= 1
-    can_jump = not player.p_jump and (player.grace > 0 or player.is_solid(-3 + dx, dy) or player.is_solid(3 + dx, dy))
-    can_dash = player.djump > 0 or player.is_solid(dx, 1 + dy) #or player.check(p8.game.balloon, dx, dy) or player.check(p8.game.fruit, dx, dy) or player.check(p8.game.fly_fruit, dx, dy)
+    can_jump = not player.p_jump and (player.grace - 1 > 0 or player.is_solid(-3 + dx, dy) or player.is_solid(3 + dx, dy) or player.is_solid(dx, 1 + dy))
+    can_dash = player.djump > 0 or player.is_solid(dx, 1 + dy) or player.check(self.p8.game.balloon, 0, 0) or player.check(self.p8.game.fruit, 0, 0) or player.check(self.p8.game.fly_fruit, 0, 0)
     return h_movement, can_jump, can_dash
 
   # translate a list of inputs into english
