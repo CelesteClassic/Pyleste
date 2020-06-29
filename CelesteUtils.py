@@ -2,6 +2,10 @@
 def enable_loop_mode(p8):
   p8.game.next_room = lambda: p8.game.load_room(p8.game.level_index() % 8, p8.game.level_index() // 8)
 
+# set max number of dashes
+def set_max_djump(p8, max_djump):
+  p8.game.max_djump = max_djump
+
 # load a room by level id
 def load_room(p8, level_id):
   p8.set_btn_state(0)
