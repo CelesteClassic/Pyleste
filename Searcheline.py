@@ -17,7 +17,7 @@ To define and run a search problem:
     - initial state (list of game objects) to search from
     - e.g., load the room and place maddy in Searcheline's game instance (self.p8.game), return self.p8.game.objects
   
-  > allowable_actions(self, objs, player, h_movement, can_jump, can_dash)
+  > allowable_actions(self, objs, player, can_jump, can_dash)
     - get list of available inputs for a state
     - default: all actions
     - override this to restrict inputs (e.g., only up-dashes, no directional movement when player's y < 50, etc.)
