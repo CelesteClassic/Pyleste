@@ -53,7 +53,7 @@ def replace_room(p8, level_id, room_data):
 # forces an already spawned maddy to be in a specific state
 def place_maddy(p8, x, y, remx=0.0, remy=0.0, spdx=0.0, spdy=0.0, grace=6, djump=1):
   p = p8.game.get_player()
-  if p != None: p8.game.objects.remove(p)
+  if p: p8.game.objects.remove(p)
   p = p8.game.init_object(p8.game.player, x, y)
   p.rem.x, p.rem.y = remx, remy
   p.spd.x, p.spd.y = spdx, spdy
