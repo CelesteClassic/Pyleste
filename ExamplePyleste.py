@@ -40,7 +40,7 @@ if __name__ == '__main__':
   # hold right + x
   p8.set_inputs(r=True, x=True)
 
-  # run for 10f while outputting player info
+  # run for 20f while outputting player info
   print(p8.game.get_player())
   for f in range(20):
     p8.step()
