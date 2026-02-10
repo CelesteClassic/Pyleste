@@ -2,11 +2,23 @@ from PICO8 import PICO8
 from Carts.Celeste import Celeste
 import CelesteUtils as utils
 import time
+from dataclasses import dataclass
 # import tqdm
 
-# x,y, rem.x, rem.y, spd.x, spd.y, grace, djump, dash_time, freeze
-# TODO: dash direction
-State = tuple[int, int, float, float, float, float, int, bool, int, int]
+@dataclass(slots=True, frozen=True)
+class State:
+  x: int
+  y: int
+  x_rem: float
+  y_rem: float
+  x_spd: float
+  y_spd: float
+  grace: int = 6
+  djump: int = 1
+  dash_time: int = 0
+  freeze: int = 0
+  dash_target_x: float = 0
+  dash_target_y: float = 0
 
 def find_player(p8):
   # player tends to be near the end
@@ -21,9 +33,21 @@ def find_player_spawn(p8):
       return o
 
 def load_state(p8: PICO8, state: State):
-  utils.place_maddy(p8, *state[:-2])
-  p8.game.freeze = state[-1]
-  find_player(p8).dash_time = state[-2]
+  utils.place_maddy(p8, state.x, state.y, state.x_rem, state.y_rem, state.x_spd, state.y_spd, state.grace, state.djump)
+  p8.game.freeze = state.freeze
+  p = find_player(p8)
+  assert p
+  p.dash_time = state.dash_time
+
+  if state.dash_time > 0:
+    p.dash_target.x=state.dash_target_x
+    p.dash_target.y=state.dash_target_y
+    p.dash_accel.x = 1.5 if state.dash_target_y == 0 else 1.06066017177
+    p.dash_accel.y = 1.5 if state.dash_target_x == 0 else 1.06066017177
+  else:
+    p.dash_target.x, p.dash_target.y = 0,0
+
+
 
 
 def get_state(p8: PICO8) -> State | None:
@@ -31,8 +55,10 @@ def get_state(p8: PICO8) -> State | None:
   if not p:
     return None
 
+  target_x = p.dash_target.x if p.dash_time else 0
+  target_y = p.dash_target.y if p.dash_time else 0
   # return (p.x, p.y, round(p.rem.x, 1), round(p.rem.y, 1), round(p.spd.x, 5), round(p.spd.y, 5), p.grace, p.djump, p.dash_time, p8.game.freeze)
-  return (p.x, p.y, p.rem.x, p.rem.y, p.spd.x, p.spd.y, p.grace, p.djump, p.dash_time, p8.game.freeze)
+  return State(p.x, p.y, p.rem.x, p.rem.y, p.spd.x, p.spd.y, p.grace, p.djump, p.dash_time, p8.game.freeze, target_x, target_y)
 
 def step_state(p8: PICO8, state: State, inputs: int) -> State | None:
     load_state(p8, state)
@@ -84,7 +110,7 @@ def bfs(level: int, initial_state: State | None = None):
     for s in curr_depth:
       prev_state = None
       inps = allowed_inputs
-      if s[-2:] != (0,0):
+      if s.dash_time != 0:
         inps = [0]
       for input in inps:
         next_state = step_state(p8, s, input)
@@ -132,12 +158,12 @@ def bfs(level: int, initial_state: State | None = None):
 
 if __name__ == "__main__":
 # [player] x: 45, y: 16, rem: {-0.2, 0.00959236}, spd: {-1, -0.45}
-  # bfs(4, (45, 16, -0.2, 0.00959, -1, -0.45, 6, True, 0, 0))
+  # bfs(4, (45, 16, -0.2, 0.00959, -1, -0.45, 6, True, 0, 0, 0,0))
 # [player] x: 42, y: 48, rem: {-0.0395924, -0.450408}, spd: {1.1, -0.45}
-  # bfs(4, (42, 48, -0.0395924, -0.450408, 1.1, -0.45, 6, True, 0, 0))
-  p8 = PICO8(Celeste)
-  utils.load_room(p8, 4)
-  print(step_state(p8, (48, 40, -0.3395924, -0.17040800000000011, 0.0, -5.0, 2, 0, 3, 0), 0))
+  bfs(4, State(42, 48, -0.0395924, -0.450408, 1.1, -0.45, 6, True, 0, 0, 0, 0))
+  # p8 = PICO8(Celeste)
+  # utils.load_room(p8, 4)
+  # print(step_state(p8, (48, 40, -0.3395924, -0.17040800000000011, 0.0, -5.0, 2, 0, 3, 0, 0, -1.5), 0))
 
 
 
