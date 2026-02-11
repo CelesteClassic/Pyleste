@@ -20,6 +20,17 @@ class State:
   dash_target_x: float = 0
   dash_target_y: float = 0
 
+  def canonicalize(self) -> tuple:
+    return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,1), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
+
+  def __eq__(self, other: "State") -> bool:
+    return other and self.canonicalize() == other.canonicalize()
+
+  def __hash__(self):
+    return hash(self.canonicalize())
+
+
+
 def find_player(p8):
   # player tends to be near the end
   for o in reversed(p8.game.objects):
