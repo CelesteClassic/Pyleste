@@ -45,6 +45,7 @@ def find_player_spawn(p8):
 
 def load_state(p8: PICO8, state: State):
   utils.place_maddy(p8, state.x, state.y, state.x_rem, state.y_rem, state.x_spd, state.y_spd, state.grace, state.djump)
+  p8.game.delay_restart = 0
   p8.game.freeze = state.freeze
   p = find_player(p8)
   assert p
