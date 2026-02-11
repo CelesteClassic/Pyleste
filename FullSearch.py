@@ -59,9 +59,6 @@ def load_state(p8: PICO8, state: State):
   else:
     p.dash_target.x, p.dash_target.y = 0,0
 
-
-
-
 def get_state(p8: PICO8) -> State | None:
   p = find_player(p8)
   if not p:
@@ -80,7 +77,29 @@ def step_state(p8: PICO8, state: State, inputs: int) -> State | None:
     # print(find_player(p8), get_state(p8))
     return get_state(p8)
 
+def action_restrictions(p8: PICO8, state: State) -> tuple[bool, bool, bool]:
+  step_state(p8,state,0)
+  p = find_player(p8)
+  if not p:
+    return False, False, False
 
+  h_movement = abs(p.spd.x) <= 1 or p.is_solid(-1, 0) or p.is_solid(1, 0)
+  can_jump = p.grace > 0 or p.is_solid(3, 0) or p.is_solid(-3, 0)
+  can_dash = p.djump > 0
+
+  return h_movement, can_jump, can_dash
+
+def get_allowed_inputs(p8, state: State) -> list[int]:
+  if state.dash_time:
+    return [0]
+  h_movement, can_jump, can_dash = action_restrictions(p8, state)
+
+  actions = [0b000000] if not h_movement else [0b000000, 0b000001, 0b000010]
+  if can_jump:
+    actions.extend([0b010000] if not h_movement else [0b010000, 0b010001, 0b010010])
+  if can_dash:
+    actions.extend([0b100000, 0b100001, 0b100010, 0b100100, 0b100101, 0b100110, 0b101000, 0b101001, 0b101010])
+  return actions
 
 def bfs(level: int, initial_state: State | None = None):
   p8 = PICO8(Celeste)
@@ -104,6 +123,7 @@ def bfs(level: int, initial_state: State | None = None):
   utils.suppress_object(p8, p8.game.key)
 
   print(p8.game)
+  print(initial_state)
 
   assert len(p8.game.objects) == 1
 
@@ -121,9 +141,7 @@ def bfs(level: int, initial_state: State | None = None):
     print(f"depth {depth}, num_visited={len(visited)} elapsed time: {time.time()-start_time}")
     for s in curr_depth:
       prev_state = None
-      inps = allowed_inputs
-      if s.dash_time != 0:
-        inps = [0]
+      inps = get_allowed_inputs(p8, s)
       for input in inps:
         next_state = step_state(p8, s, input)
         # print(s, input, next_state)
@@ -172,10 +190,13 @@ if __name__ == "__main__":
 # [player] x: 45, y: 16, rem: {-0.2, 0.00959236}, spd: {-1, -0.45}
   # bfs(4, (45, 16, -0.2, 0.00959, -1, -0.45, 6, True, 0, 0, 0,0))
 # [player] x: 42, y: 48, rem: {-0.0395924, -0.450408}, spd: {1.1, -0.45}
-  bfs(4, State(42, 48, -0.0395924, -0.450408, 1.1, -0.45, 6, True, 0, 0, 0, 0))
+  # bfs(4, State(42, 48, -0.0395924, -0.450408, 1.1, -0.45, 6, True, 0, 0, 0, 0))
+  bfs(4)
   # p8 = PICO8(Celeste)
   # utils.load_room(p8, 4)
-  # print(step_state(p8, (48, 40, -0.3395924, -0.17040800000000011, 0.0, -5.0, 2, 0, 3, 0, 0, -1.5), 0))
+  # state = State(x=14, y=72, x_rem=-0.050000000000000266, y_rem=0.40999999999999925, x_spd=2, y_spd=-1.5, grace=0, djump=0, dash_time=0, freeze=0, dash_target_x=0, dash_target_y=0)
+  # print(state)
+  # print(step_state(p8, state, 0))
 
 
 
