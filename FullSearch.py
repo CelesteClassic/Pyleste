@@ -15,6 +15,7 @@ class State:
   x_spd: float
   y_spd: float
   grace: int = 6
+  p_jump: bool = False
   djump: int = 1
   dash_time: int = 0
   freeze: int = 0
@@ -22,7 +23,7 @@ class State:
   dash_target_y: float = 0
 
   def canonicalize(self) -> tuple:
-    return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,2), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
+    return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,2), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.p_jump, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
 
   def __eq__(self, other: "State") -> bool:
     return other and self.canonicalize() == other.canonicalize()
@@ -55,6 +56,7 @@ class BFSline:
     self.p8.game.delay_restart = 0
     self.p8.game.freeze = state.freeze
     p = self.find_player()
+    p.p_jump = state.p_jump
     assert p
     p.dash_time = state.dash_time
 
@@ -73,15 +75,12 @@ class BFSline:
 
     target_x = p.dash_target.x if p.dash_time else 0
     target_y = p.dash_target.y if p.dash_time else 0
-    # return (p.x, p.y, round(p.rem.x, 1), round(p.rem.y, 1), round(p.spd.x, 5), round(p.spd.y, 5), p.grace, p.djump, p.dash_time, p8.game.freeze)
-    return State(p.x, p.y, p.rem.x, p.rem.y, p.spd.x, p.spd.y, p.grace, p.djump, p.dash_time, self.p8.game.freeze, target_x, target_y)
+    return State(p.x, p.y, p.rem.x, p.rem.y, p.spd.x, p.spd.y, p.grace, p.p_jump, p.djump, p.dash_time, self.p8.game.freeze, target_x, target_y)
 
   def step_state(self, state: State, inputs: int) -> State | None:
       self.load_state(state)
-      # print(inputs, find_player(p8))
       self.p8.set_btn_state(inputs)
       self.p8.step()
-      # print(find_player(p8), get_state(p8))
       return self.get_state()
 
   def action_restrictions(self, state: State) -> tuple[bool, bool, bool]:
@@ -131,7 +130,6 @@ class BFSline:
       inps = self.allowable_actions(s)
       for input in inps:
         next_state = self.step_state(s, input)
-        # print(s, input, next_state)
         if self.is_win():
           winning_states.add((s, input))
         elif next_state is None or self.is_rip():
