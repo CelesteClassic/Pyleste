@@ -151,7 +151,7 @@ class BFSline:
     full_input = [first_input]
     while v in parent:
       p, inp = parent[v]
-      if p==v:
+      if not p:
         break
       full_input.append(inp)
       v = p
@@ -167,7 +167,7 @@ class BFSline:
     timer = time.time()
 
     curr_depth = self.init_first_depth()
-    parent = {}
+    parent = {s: (None,0) for s in curr_depth}
     all_winning_states = set()
     print('searching...')
     for depth in range(1, max_depth + 1):
