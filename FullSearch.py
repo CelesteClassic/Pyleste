@@ -22,7 +22,7 @@ class State:
   dash_target_y: float = 0
 
   def canonicalize(self) -> tuple:
-    return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,1), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
+    return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,2), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
 
   def __eq__(self, other: "State") -> bool:
     return other and self.canonicalize() == other.canonicalize()
@@ -122,7 +122,7 @@ class BFSline:
     raise NotImplementedError
 
 
-  def next_depth(self, curr_depth: list[State], visited: set[State], parent: dict[State, tuple[State, int]]):
+  def next_depth(self, curr_depth: list[State], parent: dict[State, tuple[State, int]]):
 
     next_depth = []
     winning_states = set()
@@ -132,11 +132,10 @@ class BFSline:
       for input in inps:
         next_state = self.step_state(s, input)
         # print(s, input, next_state)
-        if next_state is None:
-          if self.is_win():
-            winning_states.add((s, input))
-          elif self.is_rip():
-            continue
+        if self.is_win():
+          winning_states.add((s, input))
+        elif next_state is None or self.is_rip():
+          continue
         if next_state == prev_state or next_state is None:
           continue
 
@@ -145,10 +144,8 @@ class BFSline:
           prev_state = next_state
           next_depth.append(next_state)
 
-    next_depth = set(next_depth) - visited
-    visited |= next_depth
 
-    return list(next_depth), winning_states
+    return next_depth, winning_states
 
 
   def construct_inputs_for_state(self, state: State, first_input: int, parent: dict[State, tuple[State, int]]):
@@ -156,27 +153,31 @@ class BFSline:
     full_input = [first_input]
     while v in parent:
       p, inp = parent[v]
+      if p==v:
+        break
       full_input.append(inp)
       v = p
 
     full_input = full_input[::-1]
     return full_input
 
+  def init_first_depth(self):
+    return [self.init_state()]
+
   def search(self, max_depth, complete=False):
     self.solutions = []
     timer = time.time()
-    initial_state = self.init_state()
 
-    curr_depth = [initial_state]
-    visited = set(curr_depth)
+    curr_depth = self.init_first_depth()
     parent = {}
-    winning_states = {}
+    all_winning_states = set()
     print('searching...')
     for depth in range(1, max_depth + 1):
       print(f"depth {depth}...")
-      next_depth, winning_states = self.next_depth(curr_depth, visited, parent)
+      next_depth, winning_states = self.next_depth(curr_depth, parent)
+      all_winning_states |= winning_states
       done = winning_states and not complete
-      print(f"  elapsed time: {time.time() - timer:.2f} [s],  num_visited={len(visited)}")
+      print(f"  elapsed time: {time.time() - timer:.2f} [s],  num_visited={len(parent)}")
       usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
       print(f"Peak Memory Usage: {usage / 1024:.2f} MB")
       if done:
@@ -184,44 +185,10 @@ class BFSline:
         break
       curr_depth = next_depth
 
-    for state, inp in winning_states:
+    self.winning_states = []
+    for state, inp in all_winning_states:
       inputs = self.construct_inputs_for_state(state, inp, parent)
       self.solutions.append(inputs)
+      self.winning_states.append(state)
       print(f"  inputs: {inputs}\n  frames: {len(inputs) - 1}")
     return self.solutions
-
-
-
-class TestBfsline(BFSline):
-  def init_state(self):
-    utils.load_room(self.p8, 4)
-    utils.skip_player_spawn(self.p8)
-    utils.place_maddy(self.p8, 45, 16, -0.2, 0.00959, -1, -0.45, 6, 1)
-    utils.suppress_object(self.p8, self.p8.game.chest)
-    utils.suppress_object(self.p8, self.p8.game.key)
-
-    print(self.p8.game)
-    print(self.get_state())
-    return self.get_state()
-
-if __name__ == "__main__":
-# [player] x: 42, y: 48, rem: {-0.0395924, -0.450408}, spd: {1.1, -0.45}
-  # bfs(4, State(42, 48, -0.0395924, -0.450408, 1.1, -0.45, 6, True, 0, 0, 0, 0))
-  bfsline = TestBfsline()
-  bfsline.search(100)
-  # p8 = PICO8(Celeste)
-  # utils.load_room(p8, 4)
-  # state = State(x=14, y=72, x_rem=-0.050000000000000266, y_rem=0.40999999999999925, x_spd=2, y_spd=-1.5, grace=0, djump=0, dash_time=0, freeze=0, dash_target_x=0, dash_target_y=0)
-  # print(state)
-  # print(step_state(p8, state, 0))
-
-
-
-
-
-
-
-
-
-
-
