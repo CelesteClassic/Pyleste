@@ -3,7 +3,10 @@ from Carts.Celeste import Celeste
 import CelesteUtils as utils
 import time
 from dataclasses import dataclass
-import resource
+try:
+  import resource
+except:
+  resource = None
 # import tqdm
 
 @dataclass(slots=True, frozen=True)
@@ -56,8 +59,8 @@ class BFSline:
     self.p8.game.delay_restart = 0
     self.p8.game.freeze = state.freeze
     p = self.find_player()
-    p.p_jump = state.p_jump
     assert p
+    p.p_jump = state.p_jump
     p.dash_time = state.dash_time
 
     if state.dash_time > 0:
@@ -95,11 +98,7 @@ class BFSline:
 
     return h_movement, can_jump, can_dash
 
-  def allowable_actions(self, state: State) -> list[int]:
-    if state.dash_time:
-      return [0]
-    h_movement, can_jump, can_dash = self.action_restrictions(state)
-
+  def allowable_actions(self, state: State, h_movement, can_jump, can_dash) -> list[int]:
     actions = [0b000000] if not h_movement else [0b000000, 0b000001, 0b000010]
     if can_jump:
       actions.extend([0b010000] if not h_movement else [0b010000, 0b010001, 0b010010])
@@ -120,6 +119,10 @@ class BFSline:
     # return self.get_state() or a state object
     raise NotImplementedError
 
+  def get_actions(self, state: State):
+    if state.dash_time != 0: return [0b000000]
+    return self.allowable_actions(state, *self.action_restrictions(state))
+
 
   def next_depth(self, curr_depth: list[State], parent: dict[State, tuple[State, int]]):
 
@@ -127,7 +130,7 @@ class BFSline:
     winning_states = set()
     for s in curr_depth:
       prev_state = None
-      inps = self.allowable_actions(s)
+      inps = self.get_actions(s)
       for input in inps:
         next_state = self.step_state(s, input)
         if self.is_win():
@@ -176,8 +179,9 @@ class BFSline:
       all_winning_states |= winning_states
       done = winning_states and not complete
       print(f"  elapsed time: {time.time() - timer:.2f} [s],  num_visited={len(parent)}")
-      usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-      print(f"Peak Memory Usage: {usage / 1024:.2f} MB")
+      if resource is not None:
+        usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        print(f"Peak Memory Usage: {usage / 1024:.2f} MB")
       if done:
         print(f"found solutions at depth {depth}")
         break
