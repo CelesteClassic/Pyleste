@@ -162,19 +162,22 @@ class BFSline:
     full_input = full_input[::-1]
     return full_input
 
-  def init_first_depth(self):
-    return [self.init_state()]
+  def depth_base_states(self, depth: int):
+    if depth==1:
+      return [self.init_state()]
+    return []
 
   def search(self, max_depth, complete=False):
     self.solutions = []
     timer = time.time()
 
-    curr_depth = self.init_first_depth()
+    curr_depth = []
     parent = {s: (None,0) for s in curr_depth}
     all_winning_states = set()
     print('searching...')
     for depth in range(1, max_depth + 1):
       print(f"depth {depth}...")
+      curr_depth += self.depth_base_states(depth)
       next_depth, winning_states = self.next_depth(curr_depth, parent)
       all_winning_states |= winning_states
       done = winning_states and not complete
