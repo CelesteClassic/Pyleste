@@ -106,11 +106,12 @@ class BFSline:
       actions.extend([0b100000, 0b100001, 0b100010, 0b100100, 0b100101, 0b100110, 0b101000, 0b101001, 0b101010])
     return actions
 
-  def is_win(self):
+  def is_win(self, state: State | None):
     return self.find_player_spawn()
 
-  def is_rip(self):
-    return not self.find_player()
+  def is_rip(self, state: State, depth: int):
+    # dead player is checked before calling this function
+    return False
 
   # initial state (list of game objects) to search from
   # must override this
@@ -124,7 +125,7 @@ class BFSline:
     return self.allowable_actions(state, *self.action_restrictions(state))
 
 
-  def next_depth(self, curr_depth: list[State], parent: dict[State, tuple[State, int]]):
+  def next_depth(self, depth: int, curr_depth: list[State], parent: dict[State, tuple[State, int]]):
 
     next_depth = []
     winning_states = set()
@@ -133,9 +134,9 @@ class BFSline:
       inps = self.get_actions(s)
       for input in inps:
         next_state = self.step_state(s, input)
-        if self.is_win():
+        if self.is_win(next_state):
           winning_states.add((s, input))
-        elif next_state is None or self.is_rip():
+        elif next_state is None or self.is_rip(next_state, depth):
           continue
         if next_state == prev_state or next_state is None:
           continue
@@ -169,6 +170,7 @@ class BFSline:
 
   def search(self, max_depth, complete=False):
     self.solutions = []
+    self.max_depth = max_depth
     timer = time.time()
 
     curr_depth = []
