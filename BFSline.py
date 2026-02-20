@@ -173,14 +173,19 @@ class BFSline:
     self.max_depth = max_depth
     timer = time.time()
 
+    parent = {}
     curr_depth = []
-    parent = {s: (None,0) for s in curr_depth}
     all_winning_states = set()
     print('searching...')
     for depth in range(1, max_depth + 1):
       print(f"depth {depth}...")
-      curr_depth += self.depth_base_states(depth)
-      next_depth, winning_states = self.next_depth(curr_depth, parent)
+      depth_base_states = self.depth_base_states(depth)
+      for s in depth_base_states:
+        if s not in parent:
+          parent[s] = (None, 0)
+          curr_depth.append(s)
+
+      next_depth, winning_states = self.next_depth(depth, curr_depth, parent)
       all_winning_states |= winning_states
       done = winning_states and not complete
       print(f"  elapsed time: {time.time() - timer:.2f} [s],  num_visited={len(parent)}")
