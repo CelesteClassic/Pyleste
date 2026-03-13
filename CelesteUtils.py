@@ -58,6 +58,7 @@ def place_maddy(p8, x, y, remx=0.0, remy=0.0, spdx=0.0, spdy=0.0, grace=6, djump
   p.rem.x, p.rem.y = remx, remy
   p.spd.x, p.spd.y = spdx, spdy
   p.grace, p.djump = grace, djump
+  return p
 
 # render the game from the current game state onward given a list of inputs
 def watch_inputs(p8, inputs):

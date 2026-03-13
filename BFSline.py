@@ -3,6 +3,7 @@ from Carts.Celeste import Celeste
 import CelesteUtils as utils
 import time
 from dataclasses import dataclass
+from typing import Self
 try:
   import resource
 except:
@@ -28,18 +29,43 @@ class State:
   def canonicalize(self) -> tuple:
     return (self.x, self.y, round(self.x_rem,1), round(self.y_rem,2), round(self.x_spd,5), round(self.y_spd, 5), self.grace, self.p_jump, self.djump, self.dash_time, self.freeze, self.dash_target_x, self.dash_target_y)
 
-  def __eq__(self, other: "State") -> bool:
+  def __eq__(self, other: Self) -> bool:
     return other and self.canonicalize() == other.canonicalize()
 
   def __hash__(self):
     return hash(self.canonicalize())
 
+  def load_state(self, p8: PICO8):
+    player = utils.place_maddy(p8, self.x, self.y, self.x_rem, self.y_rem, self.x_spd, self.y_spd, self.grace, self.djump)
+    p8.game.delay_restart = 0
+    p8.game.freeze = self.freeze
+    player.p_jump = self.p_jump
+    player.dash_time = self.dash_time
+
+    if self.dash_time > 0:
+      player.dash_target.x=self.dash_target_x
+      player.dash_target.y=self.dash_target_y
+      player.dash_accel.x = 1.5 if self.dash_target_y == 0 else 1.06066017177
+      player.dash_accel.y = 1.5 if self.dash_target_x == 0 else 1.06066017177
+    else:
+      player.dash_target.x, player.dash_target.y = 0,0
+
+  @classmethod
+  def get_state(cls, p8: PICO8, player, *args) -> Self:
+    target_x = player.dash_target.x if player.dash_time else 0
+    target_y = player.dash_target.y if player.dash_time else 0
+    return cls(player.x, player.y, player.rem.x, player.rem.y, player.spd.x, player.spd.y, player.grace, player.p_jump, player.djump, player.dash_time, p8.game.freeze, target_x, target_y, *args)
+
+
+
+
 
 class BFSline:
 
-  def __init__(self, cart=None):
+  def __init__(self, cart=None, state=State):
     self.solutions = []
     self.p8 = PICO8(Celeste if cart == None else cart)
+    self.state_cls = state
     utils.enable_loop_mode(self.p8)
 
   def find_player(self):
@@ -55,30 +81,13 @@ class BFSline:
         return o
 
   def load_state(self, state: State):
-    utils.place_maddy(self.p8, state.x, state.y, state.x_rem, state.y_rem, state.x_spd, state.y_spd, state.grace, state.djump)
-    self.p8.game.delay_restart = 0
-    self.p8.game.freeze = state.freeze
-    p = self.find_player()
-    assert p
-    p.p_jump = state.p_jump
-    p.dash_time = state.dash_time
-
-    if state.dash_time > 0:
-      p.dash_target.x=state.dash_target_x
-      p.dash_target.y=state.dash_target_y
-      p.dash_accel.x = 1.5 if state.dash_target_y == 0 else 1.06066017177
-      p.dash_accel.y = 1.5 if state.dash_target_x == 0 else 1.06066017177
-    else:
-      p.dash_target.x, p.dash_target.y = 0,0
+    state.load_state(self.p8)
 
   def get_state(self) -> State | None:
     p = self.find_player()
     if not p:
       return None
-
-    target_x = p.dash_target.x if p.dash_time else 0
-    target_y = p.dash_target.y if p.dash_time else 0
-    return State(p.x, p.y, p.rem.x, p.rem.y, p.spd.x, p.spd.y, p.grace, p.p_jump, p.djump, p.dash_time, self.p8.game.freeze, target_x, target_y)
+    return self.state_cls.get_state(self.p8, p)
 
   def step_state(self, state: State, inputs: int) -> State | None:
       self.load_state(state)
@@ -109,7 +118,7 @@ class BFSline:
   def is_win(self, state: State | None):
     return self.find_player_spawn()
 
-  def is_rip(self, state: State, depth: int):
+  def is_rip(self, state: State, depth: int) -> bool:
     # dead player is checked before calling this function
     return False
 
