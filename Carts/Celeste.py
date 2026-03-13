@@ -1,5 +1,9 @@
 import math
 
+
+def sin(x):
+  return math.sin(-math.pi*2*x)
+
 class Vector():
   def __init__(self, x, y):
     self.x = x
@@ -87,7 +91,7 @@ class Celeste():
           o.move(o.spd.x, o.spd.y)
           if callable(getattr(o, 'update', None)):
             o.update()
-    
+
     # [change] remove destroyed objects after update calls
     while self.objects.count(None) > 0: self.objects.remove(None)
 
@@ -402,7 +406,7 @@ class Celeste():
         hit.djump = g.max_djump
         g.destroy_object(self)
       self.off += 1
-      self.y = self.start + math.sin(self.off / 40) * 2.5
+      self.y = self.start + sin(self.off / 40) * 2.5
 
   class fly_fruit(base_obj):
     def init(self):
@@ -419,7 +423,7 @@ class Celeste():
         if g.has_dashed:
           self.fly = True
         self.step += 0.05
-        self.spd.y = math.sin(self.step) * 0.5
+        self.spd.y = sin(self.step) * 0.5
       hit = self.check(g.player, 0, 0)
       if hit:
         hit.djump = g.max_djump
