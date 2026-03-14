@@ -201,10 +201,46 @@ class BFSline:
         break
       curr_depth = next_depth
 
-    self.winning_states = []
     for state, inp in all_winning_states:
       inputs = self.construct_inputs_for_state(state, inp, parent)
       self.solutions.append(inputs)
-      self.winning_states.append(state)
       print(f"  inputs: {inputs}\n  frames: {len(inputs) - 1}")
     return self.solutions
+
+class ChainedBFSline(BFSline):
+  def __init__(self, initial_inputs: list[list[int]]):
+    super().__init__(None)
+    shortest_input = min(map(len, initial_inputs))
+    longest_input = max(map(len, initial_inputs))
+    self.starting_states_per_depth = [[] for _ in range(longest_input-shortest_input+1)]
+    self.state_to_inputs = {self.get_state_for_inputs(inp): inp for inp in initial_inputs}
+    for state, inps in self.state_to_inputs.items():
+      self.starting_states_per_depth[len(inps)-shortest_input].append(state)
+
+  def get_state_for_inputs(self, inps):
+    state = self.init_state()
+    for i in inps:
+      state = self.step_state(state, i)
+    return state
+
+  def depth_base_states(self, depth: int):
+    if depth==1:
+      self.init_state()
+
+    depth -=1
+    if depth >= len(self.starting_states_per_depth):
+      return []
+    return self.starting_states_per_depth[depth]
+
+  def construct_inputs_for_state(self, state: State, first_input: int, parent: dict[State, tuple[State, int]]):
+    v = state
+    full_input = [first_input]
+    while v in parent:
+      p, inp = parent[v]
+      if not p:
+        break
+      full_input.append(inp)
+      v = p
+
+    full_input = full_input[::-1]
+    return self.state_to_inputs[v] + full_input
