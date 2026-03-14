@@ -8,7 +8,6 @@ try:
   import resource
 except:
   resource = None
-# import tqdm
 
 @dataclass(slots=True, frozen=True)
 class State:
@@ -55,10 +54,6 @@ class State:
     target_x = player.dash_target.x if player.dash_time else 0
     target_y = player.dash_target.y if player.dash_time else 0
     return cls(player.x, player.y, player.rem.x, player.rem.y, player.spd.x, player.spd.y, player.grace, player.p_jump, player.djump, player.dash_time, p8.game.freeze, target_x, target_y, *args)
-
-
-
-
 
 class BFSline:
 
@@ -130,7 +125,7 @@ class BFSline:
     raise NotImplementedError
 
   def get_actions(self, state: State):
-    if state.dash_time != 0: return [0b000000]
+    if state.dash_time > 0: return [0b000000]
     return self.allowable_actions(state, *self.action_restrictions(state))
 
 
