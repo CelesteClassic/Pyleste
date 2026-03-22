@@ -213,20 +213,21 @@ class ChainedBFSline(BFSline):
     shortest_input = min(map(len, initial_inputs))
     longest_input = max(map(len, initial_inputs))
     self.starting_states_per_depth = [[] for _ in range(longest_input-shortest_input+1)]
-    self.state_to_inputs = {self.get_state_for_inputs(inp): inp for inp in initial_inputs}
+    inital_state = self.init_state()
+    self.state_to_inputs = {self.get_state_for_inputs(inp, inital_state): inp for inp in initial_inputs}
     for state, inps in self.state_to_inputs.items():
       self.starting_states_per_depth[len(inps)-shortest_input].append(state)
 
-  def get_state_for_inputs(self, inps):
-    state = self.init_state()
+
+  def get_state_for_inputs(self, inps, initial_state):
+    self.load_state(initial_state)
     for i in inps:
-      state = self.step_state(state, i)
-    return state
+      self.p8.set_btn_state(i)
+      self.p8.step()
+
+    return self.get_state()
 
   def depth_base_states(self, depth: int):
-    if depth==1:
-      self.init_state()
-
     depth -=1
     if depth >= len(self.starting_states_per_depth):
       return []
