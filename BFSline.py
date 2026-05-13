@@ -208,8 +208,8 @@ class BFSline:
     return self.solutions
 
 class ChainedBFSline(BFSline):
-  def __init__(self, initial_inputs: list[list[int]]):
-    super().__init__(None)
+  def __init__(self, initial_inputs: list[list[int]], cart=None, state=State):
+    super().__init__(cart, state)
     shortest_input = min(map(len, initial_inputs))
     longest_input = max(map(len, initial_inputs))
     self.starting_states_per_depth = [[] for _ in range(longest_input-shortest_input+1)]
